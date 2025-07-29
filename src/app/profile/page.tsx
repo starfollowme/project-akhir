@@ -1,4 +1,4 @@
-// src/app/profile/page.tsx
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -67,14 +67,14 @@ export default function ProfilePage() {
     confirm: false
   })
 
-  // Redirect if not authenticated
+  
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login?callbackUrl=/profile')
     }
   }, [status, router])
 
-  // Fetch profile data
+ 
   useEffect(() => {
     if (session) {
       fetchProfile()
@@ -136,7 +136,7 @@ export default function ProfilePage() {
       if (data.success) {
         setProfile(data.data)
         setIsEditing(false)
-        // Update session data
+       
         await update({
           ...session,
           user: {
@@ -157,7 +157,7 @@ export default function ProfilePage() {
   }
 
   const changePassword = async () => {
-    // Validation
+  
     if (!passwordData.currentPassword) {
       toast.error('Current password is required')
       return
