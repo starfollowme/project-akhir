@@ -1,4 +1,4 @@
-
+// src/app/orders/[id]/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -9,96 +9,86 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   ArrowLeft, 
   Package, 
   Calendar,
   DollarSign,
-  User,
-  Mail,
-  Phone,
   MapPin,
-  Edit,
-  Save,
-  Eye,
-  Printer
+  Truck,
+  CheckCircle,
+  Clock,
+  XCircle
 } from 'lucide-react'
 import { OrderWithItems } from '@/types'
 import { toast } from 'sonner'
 
-export default function AdminOrderDetailPage() {
+export default function OrderDetailPage() {
   const { data: session, status } = useSession()
   const params = useParams()
   const router = useRouter()
   const orderId = params.id as string
 
-  const [order, setOrder] = useState<(OrderWithItems & { user: any }) | null>(null)
+  const [order, setOrder] = useState<OrderWithItems | null>(null)
   const [loading, setLoading] = useState(true)
-  const [updating, setUpdating] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
 
-  
+  // Redirect if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/login')
-    } else if (status === 'authenticated' && session?.user?.role !== 'ADMIN') {
-      router.push('/')
+      router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))
     }
-  }, [status, session, router])
+  }, [status, router])
 
-  
+  // Fetch order details
   useEffect(() => {
-    if (session?.user?.role === 'ADMIN' && orderId) {
+    if (session && orderId) {
       fetchOrderDetails()
     }
   }, [session, orderId])
 
   const fetchOrderDetails = async () => {
     try {
+      setLoading(true)
       const response = await fetch(`/api/orders/${orderId}`)
       const data = await response.json()
 
       if (data.success) {
         setOrder(data.data)
       } else {
-        toast.error('Order not found')
-        router.push('/admin/orders')
+        toast.error(data.details || data.error || 'Order not found')
+        router.push('/orders')
       }
     } catch (error) {
       console.error('Error fetching order:', error)
       toast.error('Failed to load order details')
-      router.push('/admin/orders')
+      router.push('/orders')
     } finally {
       setLoading(false)
     }
   }
 
-  const updateOrderStatus = async (newStatus: string) => {
-    if (!order) return
-
-    setUpdating(true)
+  // ✨ FIXED: Fungsi untuk membatalkan order
+  const handleCancelOrder = async () => {
+    if (!confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+        return;
+    }
+    setIsCancelling(true);
     try {
-      const response = await fetch(`/api/orders/${orderId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setOrder(data.data)
-        toast.success('Order status updated successfully')
-      } else {
-        toast.error(data.error || 'Failed to update order status')
-      }
+        const response = await fetch(`/api/orders/${orderId}`, {
+            method: 'DELETE',
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.details || result.error || 'Failed to cancel order');
+        }
+        toast.success('Order cancelled successfully');
+        fetchOrderDetails(); // Refresh order details
     } catch (error) {
-      console.error('Error updating order status:', error)
-      toast.error('Failed to update order status')
+        console.error('Error cancelling order:', error);
+        toast.error(error.message);
     } finally {
-      setUpdating(false)
+        setIsCancelling(false);
     }
   }
 
@@ -119,8 +109,43 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return <Clock className="w-4 h-4" />
+      case 'PROCESSING':
+        return <Package className="w-4 h-4" />
+      case 'SHIPPED':
+        return <Truck className="w-4 h-4" />
+      case 'DELIVERED':
+        return <CheckCircle className="w-4 h-4" />
+      case 'CANCELLED':
+        return <XCircle className="w-4 h-4" />
+      default:
+        return <Package className="w-4 h-4" />
+    }
+  }
+
+  const getStatusDescription = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return 'Your order has been received and is being reviewed.'
+      case 'PROCESSING':
+        return 'Your order is being prepared for shipment.'
+      case 'SHIPPED':
+        return 'Your order has been shipped and is on its way.'
+      case 'DELIVERED':
+        return 'Your order has been successfully delivered.'
+      case 'CANCELLED':
+        return 'Your order has been cancelled.'
+      default:
+        return 'Order status is being updated.'
+    }
+  }
+
+  // ✨ FIXED: Mengubah tipe parameter menjadi Date
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -129,36 +154,58 @@ export default function AdminOrderDetailPage() {
     })
   }
 
-  const printOrder = () => {
-    window.print()
-  }
-
   if (status === 'loading' || loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-          <div className="h-96 bg-gray-200 rounded"></div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="h-96 bg-gray-200 rounded"></div>
+          </div>
         </div>
       </div>
     )
   }
 
-  if (!session || session.user.role !== 'ADMIN' || !order) {
-    return null
+  if (!session) {
+    return null // Will redirect
+  }
+
+  if (!order) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">Order not found</h2>
+          <p className="text-gray-600 mb-6">
+            The order you're looking for doesn't exist or you don't have permission to view it.
+          </p>
+          <Link href="/orders">
+            <Button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Orders
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   const subtotal = order.items.reduce((sum, item) => {
     return sum + (Number(item.price) * item.quantity)
   }, 0)
 
+  const shipping = subtotal > 100 ? 0 : 10
+  const tax = subtotal * 0.08 // 8% tax
+  const total = Number(order.total)
+
   return (
-    <div className="p-6">
-      
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/orders">
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link href="/orders">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Orders
@@ -173,225 +220,155 @@ export default function AdminOrderDetailPage() {
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={printOrder}>
-            <Printer className="w-4 h-4 mr-2" />
-            Print
-          </Button>
-        </div>
-      </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Order Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {getStatusIcon(order.status)}
+                  Order Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3 mb-3">
+                  <Badge className={getStatusColor(order.status)}>
+                    {order.status}
+                  </Badge>
+                  <span className="text-sm text-gray-600">
+                    Updated {formatDate(order.updatedAt)}
+                  </span>
+                </div>
+                <p className="text-gray-700">
+                  {getStatusDescription(order.status)}
+                </p>
+              </CardContent>
+            </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <div className="lg:col-span-2 space-y-6">
-         
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Management</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div>
-                  <label className="text-sm font-medium">Order Status</label>
-                  <Select
-                    value={order.status}
-                    onValueChange={updateOrderStatus}
-                    disabled={updating}
-                  >
-                    <SelectTrigger className="w-48">
-                      <Badge className={getStatusColor(order.status)}>
-                        {order.status}
-                      </Badge>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="PENDING">Pending</SelectItem>
-                      <SelectItem value="PROCESSING">Processing</SelectItem>
-                      <SelectItem value="SHIPPED">Shipped</SelectItem>
-                      <SelectItem value="DELIVERED">Delivered</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="text-sm text-gray-600">
-                  Last updated: {formatDate(order.updatedAt)}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-         
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium">{order.user?.name || 'No Name'}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    <span>{order.user?.email}</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span>Customer since: {formatDate(order.user?.createdAt)}</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Items ({order.items.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                    <div className="relative w-16 h-16 flex-shrink-0">
-                      {item.product.imageUrl ? (
-                        <Image
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
-                          fill
-                          className="object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                          <Package className="w-6 h-6 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <Link 
-                        href={`/admin/products/${item.product.id}/edit`}
-                        className="font-medium hover:text-primary transition-colors"
-                      >
-                        {item.product.name}
-                      </Link>
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <p>SKU: {item.product.id.slice(-8).toUpperCase()}</p>
-                        <p>Price at purchase: ${Number(item.price).toFixed(2)}</p>
-                        <p>Quantity: {item.quantity}</p>
+            {/* Order Items */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Order Items ({order.items.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {order.items.map((item) => (
+                    <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                      <div className="relative w-16 h-16 flex-shrink-0">
+                        {item.product.imageUrl ? (
+                          <Image
+                            src={item.product.imageUrl}
+                            alt={item.product.name}
+                            fill
+                            className="object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                            <Package className="w-6 h-6 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <Link 
+                          href={`/products/${item.product.id}`}
+                          className="font-medium hover:text-primary transition-colors"
+                        >
+                          {item.product.name}
+                        </Link>
+                        <p className="text-sm text-gray-600">
+                          Quantity: {item.quantity}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Price: ${Number(item.price).toFixed(2)} each
+                        </p>
+                      </div>
+                      
+                      <div className="text-right">
+                        <p className="font-semibold">
+                          ${(Number(item.price) * item.quantity).toFixed(2)}
+                        </p>
                       </div>
                     </div>
-                    
-                    <div className="text-right">
-                      <p className="font-semibold">
-                        ${(Number(item.price) * item.quantity).toFixed(2)}
-                      </p>
-                      <Link href={`/admin/products/${item.product.id}/edit`}>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Product
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-       
-        <div className="space-y-6">
-         
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>${(Number(order.total) - subtotal > 0 ? Number(order.total) - subtotal : 0).toFixed(2)}</span>
-              </div>
-              
-              <hr />
-              
-              <div className="flex justify-between text-lg font-semibold">
-                <span>Total</span>
-                <span>${Number(order.total).toFixed(2)}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
-                    <Package className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Order Placed</p>
-                    <p className="text-sm text-gray-600">
-                      {formatDate(order.createdAt)}
-                    </p>
-                  </div>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Order Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>${subtotal.toFixed(2)}</span>
                 </div>
                 
-                {order.status !== 'PENDING' && order.status !== 'CANCELLED' && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mt-1">
-                      <Edit className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Status Updated</p>
-                      <p className="text-sm text-gray-600">
-                        {formatDate(order.updatedAt)}
-                      </p>
-                    </div>
-                  </div>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>
+                    {shipping === 0 ? (
+                      <span className="text-green-600">Free</span>
+                    ) : (
+                      `$${shipping.toFixed(2)}`
+                    )}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span>Tax</span>
+                  <span>${tax.toFixed(2)}</span>
+                </div>
+                
+                <hr />
+                
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Total</span>
+                  <span>${total.toFixed(2)}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {order.status === 'DELIVERED' && (
+                  <Button className="w-full" onClick={() => toast.info('Write a review feature is not yet implemented.')}>
+                    Write a Review
+                  </Button>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => router.push(`/admin/users/${order.user?.id}`)}
-              >
-                <User className="w-4 h-4 mr-2" />
-                View Customer
-              </Button>
-              
-              <Button variant="outline" className="w-full">
-                <Mail className="w-4 h-4 mr-2" />
-                Send Email
-              </Button>
-              
-              <Button variant="outline" className="w-full" onClick={printOrder}>
-                <Printer className="w-4 h-4 mr-2" />
-                Print Invoice
-              </Button>
-            </CardContent>
-          </Card>
+                
+                {/* ✨ FIXED: Tombol cancel sekarang berfungsi */}
+                {(order.status === 'PENDING' || order.status === 'PROCESSING') && (
+                  <Button 
+                    variant="destructive" 
+                    className="w-full"
+                    onClick={handleCancelOrder}
+                    disabled={isCancelling}
+                  >
+                    {isCancelling ? 'Cancelling...' : 'Cancel Order'}
+                  </Button>
+                )}
+                
+                <Button variant="outline" className="w-full" onClick={() => toast.info('Download invoice feature is not yet implemented.')}>
+                  Download Invoice
+                </Button>
+                
+                <Button variant="outline" className="w-full" onClick={() => toast.info('Contact support feature is not yet implemented.')}>
+                  Contact Support
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
