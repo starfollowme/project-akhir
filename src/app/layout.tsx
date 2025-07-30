@@ -1,11 +1,14 @@
 import { Inter } from 'next/font/google'
+import { Toaster } from 'sonner'
+import { Header } from '@/components/layout/Header'
+import { Providers } from './providers'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'TokoKu - Toko Online Anda',
-  description: 'Platform e-commerce modern dengan Next.js',
+  title: 'E-Shop - Your Online Store',
+  description: 'Modern e-commerce platform built with Next.js',
 }
 
 export default function RootLayout({
