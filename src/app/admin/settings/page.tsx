@@ -1,4 +1,4 @@
-// src/app/admin/settings/page.tsx
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -52,7 +52,7 @@ export default function AdminSettingsPage() {
     freeShippingThreshold: 100
   })
 
-  // Check if user is admin
+  
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login')
@@ -71,7 +71,7 @@ export default function AdminSettingsPage() {
   const saveStoreSettings = async () => {
     setLoading(true)
     try {
-      // Simulate API call - in real app, save to database
+      
       await new Promise(resolve => setTimeout(resolve, 1000))
       toast.success('Store settings saved successfully!')
     } catch (error) {
@@ -84,7 +84,7 @@ export default function AdminSettingsPage() {
   const exportData = async () => {
     try {
       toast.info('Preparing data export...')
-      // Simulate export process
+      
       await new Promise(resolve => setTimeout(resolve, 2000))
       toast.success('Data export completed! Check your downloads.')
     } catch (error) {
@@ -126,7 +126,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="p-6">
-      {/* Header */}
+      
       <div className="flex items-center gap-4 mb-6">
         <Settings className="w-6 h-6" />
         <div>
@@ -136,7 +136,7 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar Navigation */}
+        
         <div className="lg:col-span-1">
           <Card>
             <CardContent className="p-4">
@@ -163,7 +163,7 @@ export default function AdminSettingsPage() {
           </Card>
         </div>
 
-        {/* Main Content */}
+        
         <div className="lg:col-span-3">
           {activeTab === 'store' && (
             <Card>
