@@ -27,6 +27,7 @@ export interface ProductFormData {
   isActive?: boolean
 }
 
+// PERBAIKAN KUNCI: Tipe data untuk menampung pesan error (semuanya string)
 interface ProductFormErrors {
     name?: string
     description?: string
@@ -47,7 +48,7 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
     imageUrl: product?.imageUrl || '',
     isActive: product?.isActive ?? true
   })
-  const [errors, setErrors] = useState<ProductFormErrors>({})
+  const [errors, setErrors] = useState<ProductFormErrors>({}) // Menggunakan tipe error yang baru
 
   useEffect(() => {
     fetchCategories()
@@ -75,7 +76,6 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
       [field]: value
     }))
     
-    // PERBAIKAN: Cara yang lebih aman untuk menghapus error
     if (errors[field as keyof ProductFormErrors]) {
       setErrors(prev => {
         const newErrors = { ...prev };
