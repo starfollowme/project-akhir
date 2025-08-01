@@ -15,7 +15,7 @@ import { OrderWithItems } from '@/types';
 type OrderItemWithProduct = OrderWithItems['items'][number];
 
 export default function OrdersPage() {
-  const { data: session ,status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,8 +77,8 @@ export default function OrdersPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', { // Menggunakan format lokal Indonesia
+  const formatDate = (date: string | Date) => {
+    return new Date(date).toLocaleDateString('id-ID', { // Menggunakan format lokal Indonesia
       year: 'numeric',
       month: 'short',
       day: 'numeric',
