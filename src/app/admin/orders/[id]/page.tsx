@@ -116,7 +116,8 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  const formatDate = (dateString: string) => {
+  // PERBAIKAN: Mengizinkan input berupa string atau Date
+  const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
@@ -274,14 +275,14 @@ export default function AdminOrderDetailPage() {
                       </Link>
                       <div className="text-sm text-gray-600 space-y-1">
                         <p>SKU: {item.product.id.slice(-8).toUpperCase()}</p>
-                        <p>Harga saat pembelian: Rp{Number(item.price).toLocaleString('id-ID')}</p>
+                        <p>Harga saat pembelian: ${Number(item.price).toFixed(2)}</p>
                         <p>Kuantitas: {item.quantity}</p>
                       </div>
                     </div>
 
                     <div className="text-right">
                       <p className="font-semibold">
-                        Rp{(Number(item.price) * item.quantity).toLocaleString('id-ID')}
+                        ${(Number(item.price) * item.quantity).toFixed(2)}
                       </p>
                       <Link href={`/admin/products/${item.product.id}/edit`}>
                         <Button variant="ghost" size="sm">
@@ -305,19 +306,19 @@ export default function AdminOrderDetailPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>Rp{subtotal.toLocaleString('id-ID')}</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between">
                 <span>Pengiriman</span>
-                <span>Rp{(Number(order.total) - subtotal > 0 ? Number(order.total) - subtotal : 0).toLocaleString('id-ID')}</span>
+                <span>${(Number(order.total) - subtotal > 0 ? Number(order.total) - subtotal : 0).toFixed(2)}</span>
               </div>
 
               <hr />
 
               <div className="flex justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span>Rp{Number(order.total).toLocaleString('id-ID')}</span>
+                <span>${Number(order.total).toFixed(2)}</span>
               </div>
             </CardContent>
           </Card>
