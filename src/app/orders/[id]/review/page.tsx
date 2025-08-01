@@ -142,7 +142,11 @@ export default function OrderReviewPage() {
             submitted: true
           }
         }))
-        setExistingReviews(prev => new Set([...prev, productId]))
+        setExistingReviews(prev => {
+          const newSet = new Set(prev)
+          newSet.add(productId)
+          return newSet
+        })
       } else {
         toast.error(data.error || 'Gagal mengirim ulasan')
       }
