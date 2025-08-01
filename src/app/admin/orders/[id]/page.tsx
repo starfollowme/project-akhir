@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -10,9 +9,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  ArrowLeft, 
-  Package, 
+import {
+  ArrowLeft,
+  Package,
   Calendar,
   DollarSign,
   User,
@@ -37,7 +36,6 @@ export default function AdminOrderDetailPage() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
 
-  
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login')
@@ -46,7 +44,6 @@ export default function AdminOrderDetailPage() {
     }
   }, [status, session, router])
 
-  // Fetch order details
   useEffect(() => {
     if (session?.user?.role === 'ADMIN' && orderId) {
       fetchOrderDetails()
@@ -61,12 +58,12 @@ export default function AdminOrderDetailPage() {
       if (data.success) {
         setOrder(data.data)
       } else {
-        toast.error('Order not found')
+        toast.error('Pesanan tidak ditemukan')
         router.push('/admin/orders')
       }
     } catch (error) {
-      console.error('Error fetching order:', error)
-      toast.error('Failed to load order details')
+      console.error('Gagal mengambil detail pesanan:', error)
+      toast.error('Gagal memuat detail pesanan')
       router.push('/admin/orders')
     } finally {
       setLoading(false)
@@ -90,13 +87,13 @@ export default function AdminOrderDetailPage() {
 
       if (data.success) {
         setOrder(data.data)
-        toast.success('Order status updated successfully')
+        toast.success('Status pesanan berhasil diperbarui')
       } else {
-        toast.error(data.error || 'Failed to update order status')
+        toast.error(data.error || 'Gagal memperbarui status pesanan')
       }
     } catch (error) {
-      console.error('Error updating order status:', error)
-      toast.error('Failed to update order status')
+      console.error('Gagal memperbarui status pesanan:', error)
+      toast.error('Gagal memperbarui status pesanan')
     } finally {
       setUpdating(false)
     }
@@ -120,7 +117,7 @@ export default function AdminOrderDetailPage() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -155,20 +152,19 @@ export default function AdminOrderDetailPage() {
 
   return (
     <div className="p-6">
-      
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Link href="/admin/orders">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Orders
+              Kembali ke Pesanan
             </Button>
           </Link>
           <div className="border-l h-6"></div>
           <div>
-            <h1 className="text-2xl font-bold">Order #{order.orderNumber}</h1>
+            <h1 className="text-2xl font-bold">Pesanan #{order.orderNumber}</h1>
             <p className="text-gray-600">
-              Placed on {formatDate(order.createdAt)}
+              Dibuat pada {formatDate(order.createdAt)}
             </p>
           </div>
         </div>
@@ -176,23 +172,21 @@ export default function AdminOrderDetailPage() {
         <div className="flex gap-2">
           <Button variant="outline" onClick={printOrder}>
             <Printer className="w-4 h-4 mr-2" />
-            Print
+            Cetak
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-       
         <div className="lg:col-span-2 space-y-6">
-          
           <Card>
             <CardHeader>
-              <CardTitle>Order Management</CardTitle>
+              <CardTitle>Manajemen Pesanan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
                 <div>
-                  <label className="text-sm font-medium">Order Status</label>
+                  <label className="text-sm font-medium">Status Pesanan</label>
                   <Select
                     value={order.status}
                     onValueChange={updateOrderStatus}
@@ -204,55 +198,53 @@ export default function AdminOrderDetailPage() {
                       </Badge>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PENDING">Pending</SelectItem>
-                      <SelectItem value="PROCESSING">Processing</SelectItem>
-                      <SelectItem value="SHIPPED">Shipped</SelectItem>
-                      <SelectItem value="DELIVERED">Delivered</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                      <SelectItem value="PENDING">Tertunda</SelectItem>
+                      <SelectItem value="PROCESSING">Diproses</SelectItem>
+                      <SelectItem value="SHIPPED">Dikirim</SelectItem>
+                      <SelectItem value="DELIVERED">Terkirim</SelectItem>
+                      <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="text-sm text-gray-600">
-                  Last updated: {formatDate(order.updatedAt)}
+                  Terakhir diperbarui: {formatDate(order.updatedAt)}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-         
           <Card>
             <CardHeader>
-              <CardTitle>Customer Information</CardTitle>
+              <CardTitle>Informasi Pelanggan</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium">{order.user?.name || 'No Name'}</span>
+                    <span className="font-medium">{order.user?.name || 'Tanpa Nama'}</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-gray-400" />
                     <span>{order.user?.email}</span>
                   </div>
                 </div>
-                
+
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    <span>Customer since: {formatDate(order.user?.createdAt)}</span>
+                    <span>Pelanggan sejak: {formatDate(order.user?.createdAt)}</span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          
           <Card>
             <CardHeader>
-              <CardTitle>Order Items ({order.items.length})</CardTitle>
+              <CardTitle>Barang Pesanan ({order.items.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -272,9 +264,9 @@ export default function AdminOrderDetailPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
-                      <Link 
+                      <Link
                         href={`/admin/products/${item.product.id}/edit`}
                         className="font-medium hover:text-primary transition-colors"
                       >
@@ -282,19 +274,19 @@ export default function AdminOrderDetailPage() {
                       </Link>
                       <div className="text-sm text-gray-600 space-y-1">
                         <p>SKU: {item.product.id.slice(-8).toUpperCase()}</p>
-                        <p>Price at purchase: ${Number(item.price).toFixed(2)}</p>
-                        <p>Quantity: {item.quantity}</p>
+                        <p>Harga saat pembelian: Rp{Number(item.price).toLocaleString('id-ID')}</p>
+                        <p>Kuantitas: {item.quantity}</p>
                       </div>
                     </div>
-                    
+
                     <div className="text-right">
                       <p className="font-semibold">
-                        ${(Number(item.price) * item.quantity).toFixed(2)}
+                        Rp{(Number(item.price) * item.quantity).toLocaleString('id-ID')}
                       </p>
                       <Link href={`/admin/products/${item.product.id}/edit`}>
                         <Button variant="ghost" size="sm">
                           <Eye className="w-4 h-4 mr-2" />
-                          View Product
+                          Lihat Produk
                         </Button>
                       </Link>
                     </div>
@@ -305,37 +297,34 @@ export default function AdminOrderDetailPage() {
           </Card>
         </div>
 
-       
         <div className="space-y-6">
-        
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>Ringkasan Pesanan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>Rp{subtotal.toLocaleString('id-ID')}</span>
               </div>
-              
+
               <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>${(Number(order.total) - subtotal > 0 ? Number(order.total) - subtotal : 0).toFixed(2)}</span>
+                <span>Pengiriman</span>
+                <span>Rp{(Number(order.total) - subtotal > 0 ? Number(order.total) - subtotal : 0).toLocaleString('id-ID')}</span>
               </div>
-              
+
               <hr />
-              
+
               <div className="flex justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span>${Number(order.total).toFixed(2)}</span>
+                <span>Rp{Number(order.total).toLocaleString('id-ID')}</span>
               </div>
             </CardContent>
           </Card>
 
-          
           <Card>
             <CardHeader>
-              <CardTitle>Order Timeline</CardTitle>
+              <CardTitle>Linimasa Pesanan</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -344,20 +333,20 @@ export default function AdminOrderDetailPage() {
                     <Package className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-medium">Order Placed</p>
+                    <p className="font-medium">Pesanan Dibuat</p>
                     <p className="text-sm text-gray-600">
                       {formatDate(order.createdAt)}
                     </p>
                   </div>
                 </div>
-                
+
                 {order.status !== 'PENDING' && order.status !== 'CANCELLED' && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mt-1">
                       <Edit className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-medium">Status Updated</p>
+                      <p className="font-medium">Status Diperbarui</p>
                       <p className="text-sm text-gray-600">
                         {formatDate(order.updatedAt)}
                       </p>
@@ -368,29 +357,28 @@ export default function AdminOrderDetailPage() {
             </CardContent>
           </Card>
 
-         
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Aksi Cepat</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full"
                 onClick={() => router.push(`/admin/users/${order.user?.id}`)}
               >
                 <User className="w-4 h-4 mr-2" />
-                View Customer
+                Lihat Pelanggan
               </Button>
-              
+
               <Button variant="outline" className="w-full">
                 <Mail className="w-4 h-4 mr-2" />
-                Send Email
+                Kirim Email
               </Button>
-              
+
               <Button variant="outline" className="w-full" onClick={printOrder}>
                 <Printer className="w-4 h-4 mr-2" />
-                Print Invoice
+                Cetak Faktur
               </Button>
             </CardContent>
           </Card>

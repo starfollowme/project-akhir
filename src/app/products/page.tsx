@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -49,7 +48,6 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [currentPage, setCurrentPage] = useState(initialPage);
 
-
   const fetchProducts = async (
     page = 1,
     search = '',
@@ -71,31 +69,34 @@ export default function ProductsPage() {
         setProducts(data.data.products);
         setPagination(data.data.pagination);
       } else {
-        toast.error('Failed to load products');
+        toast.error('Gagal memuat produk');
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
-      toast.error('Failed to load products');
+      console.error('Gagal mengambil data produk:', error);
+      toast.error('Gagal memuat produk');
     } finally {
       setLoading(false);
     }
   };
 
-
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');
       const data = await response.json();
-
-      if (data.success) {
+      
+      // PERBAIKAN: Langsung gunakan data jika itu adalah array
+      if (Array.isArray(data)) {
+        setCategories(data);
+      } else if (data.success) { // Fallback untuk format lama jika diperlukan
         setCategories(data.data);
+      } else {
+        throw new Error("Format data kategori tidak valid");
       }
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error('Gagal mengambil data kategori:', error);
     }
   };
 
-  
   const handleAddToCart = async (productId: string, quantity: number) => {
     try {
       const response = await fetch('/api/cart', {
@@ -109,17 +110,16 @@ export default function ProductsPage() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success('Product added to cart!');
+        toast.success('Produk berhasil ditambahkan ke keranjang!');
       } else {
-        toast.error(data.error || 'Failed to add to cart');
+        toast.error(data.error || 'Gagal menambahkan ke keranjang');
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      toast.error('Failed to add to cart');
+      console.error('Gagal menambahkan ke keranjang:', error);
+      toast.error('Gagal menambahkan ke keranjang');
     }
   };
 
-  
   const updateURL = (
     page: number,
     search: string,
@@ -156,7 +156,6 @@ export default function ProductsPage() {
     fetchProducts(page, searchTerm, selectedCategory);
   };
 
-  
   useEffect(() => {
     fetchProducts(currentPage, searchTerm, selectedCategory);
     fetchCategories();
@@ -164,27 +163,24 @@ export default function ProductsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Products</h1>
+        <h1 className="text-3xl font-bold mb-4">Produk</h1>
 
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          
           <form onSubmit={handleSearch} className="flex gap-2 flex-1">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Cari produk..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Button type="submit">Search</Button>
+            <Button type="submit">Cari</Button>
           </form>
 
-         
           <div className="flex gap-2 items-center">
             <Filter className="w-4 h-4 text-gray-400" />
             <Select
@@ -192,10 +188,10 @@ export default function ProductsPage() {
               onValueChange={handleCategoryChange}
             >
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Categories" />
+                <SelectValue placeholder="Semua Kategori" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">Semua Kategori</SelectItem>
                 {categories.map((category) => (
                   <SelectItem
                     key={category.id}
@@ -210,7 +206,6 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
@@ -236,7 +231,6 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          
           {pagination.totalPages > 1 && (
             <div className="mt-8 flex justify-center gap-2">
               <Button
@@ -244,7 +238,7 @@ export default function ProductsPage() {
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
-                Previous
+                Sebelumnya
               </Button>
 
               {[...Array(pagination.totalPages)].map((_, i) => {
@@ -265,14 +259,14 @@ export default function ProductsPage() {
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === pagination.totalPages}
               >
-                Next
+                Berikutnya
               </Button>
             </div>
           )}
         </>
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No products found</p>
+          <p className="text-gray-500 text-lg">Tidak ada produk yang ditemukan</p>
           {(searchTerm || selectedCategory !== 'all') && (
             <Button
               variant="outline"
@@ -285,7 +279,7 @@ export default function ProductsPage() {
               }}
               className="mt-4"
             >
-              Clear Filters
+              Hapus Filter
             </Button>
           )}
         </div>

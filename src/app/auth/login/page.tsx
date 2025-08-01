@@ -1,4 +1,3 @@
-// src/app/auth/login/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -36,14 +35,12 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        toast.error('Invalid email or password')
+        toast.error('Email atau kata sandi tidak valid')
       } else if (result?.ok) {
-        toast.success('Login successful!')
+        toast.success('Login berhasil!')
         
-        // Get user session to check role
         const session = await getSession()
         
-        // Redirect based on role
         if (session?.user?.role === 'ADMIN') {
           router.push('/admin/dashboard')
         } else {
@@ -51,8 +48,8 @@ export default function LoginPage() {
         }
       }
     } catch (error) {
-      console.error('Login error:', error)
-      toast.error('Something went wrong. Please try again.')
+      console.error('Kesalahan login:', error)
+      toast.error('Terjadi kesalahan. Silakan coba lagi.')
     } finally {
       setIsLoading(false)
     }
@@ -68,37 +65,34 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
-        {/* Header */}
         <div className="text-center">
           <Link href="/" className="inline-flex items-center space-x-2 text-2xl font-bold">
             <Package className="h-8 w-8" />
-            <span>E-Shop</span>
+            <span>Ravello</span>
           </Link>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Sign in to your account
+            Masuk ke akun Anda
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
+            Atau{' '}
             <Link href="/auth/register" className="font-medium text-primary hover:underline">
-              create a new account
+              buat akun baru
             </Link>
           </p>
         </div>
 
-        {/* Login Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Welcome back</CardTitle>
+            <CardTitle>Selamat datang kembali</CardTitle>
             <CardDescription>
-              Enter your credentials to access your account
+              Masukkan kredensial Anda untuk mengakses akun
             </CardDescription>
           </CardHeader>
           
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
-              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
+                <Label htmlFor="email">Alamat email</Label>
                 <Input
                   id="email"
                   name="email"
@@ -107,13 +101,12 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="Enter your email"
+                  placeholder="Masukkan email Anda"
                 />
               </div>
 
-              {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Kata Sandi</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -123,7 +116,7 @@ export default function LoginPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Enter your password"
+                    placeholder="Masukkan kata sandi Anda"
                   />
                   <button
                     type="button"
@@ -139,11 +132,10 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Demo Accounts Info */}
               <div className="bg-blue-50 p-3 rounded-md text-sm">
-                <p className="font-medium text-blue-900 mb-1">Demo Accounts:</p>
+                <p className="font-medium text-blue-900 mb-1">Akun Demo:</p>
                 <p className="text-blue-700">Admin: admin@example.com / admin123</p>
-                <p className="text-blue-700">Customer: user@example.com / user123</p>
+                <p className="text-blue-700">Pelanggan: user@example.com / user123</p>
               </div>
             </CardContent>
 
@@ -153,16 +145,15 @@ export default function LoginPage() {
                 className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading ? 'Masuk...' : 'Masuk'}
               </Button>
             </CardFooter>
           </form>
         </Card>
 
-        {/* Additional Links */}
         <div className="text-center text-sm">
           <Link href="/auth/forgot-password" className="text-primary hover:underline">
-            Forgot your password?
+            Lupa kata sandi Anda?
           </Link>
         </div>
       </div>

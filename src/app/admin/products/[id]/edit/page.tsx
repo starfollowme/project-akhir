@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -44,7 +43,6 @@ export default function EditProductPage() {
     isActive: true
   })
 
-  // Check if user is admin
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login')
@@ -53,7 +51,6 @@ export default function EditProductPage() {
     }
   }, [status, session, router])
 
-  // Fetch product and categories
   useEffect(() => {
     if (session?.user?.role === 'ADMIN' && productId) {
       fetchProduct()
@@ -81,12 +78,12 @@ export default function EditProductPage() {
             setPreviewUrl(productData.imageUrl)
         }
       } else {
-        toast.error('Product not found')
+        toast.error('Produk tidak ditemukan')
         router.push('/admin/products')
       }
     } catch (error) {
-      console.error('Error fetching product:', error)
-      toast.error('Failed to load product')
+      console.error('Gagal mengambil data produk:', error)
+      toast.error('Gagal memuat produk')
       router.push('/admin/products')
     } finally {
       setLoading(false)
@@ -97,11 +94,11 @@ export default function EditProductPage() {
     try {
       const response = await fetch('/api/categories')
       const data = await response.json()
-      if (data.success) {
-        setCategories(data.data)
+      if (Array.isArray(data)) {
+        setCategories(data)
       }
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Gagal mengambil kategori:', error)
     }
   }
 
@@ -124,7 +121,7 @@ export default function EditProductPage() {
     e.preventDefault()
     
     if (!formData.name.trim() || !formData.price || !formData.stock || !formData.categoryId) {
-      toast.error('Please fill all required fields');
+      toast.error('Harap isi semua bidang yang wajib diisi');
       return;
     }
 
@@ -133,7 +130,6 @@ export default function EditProductPage() {
     try {
       let imageUrl = product?.imageUrl;
 
-      // Step 1: Upload new image if selected
       if (selectedFile) {
         const imageFormData = new FormData();
         imageFormData.append('file', selectedFile);
@@ -145,12 +141,11 @@ export default function EditProductPage() {
 
         const uploadResult = await uploadResponse.json();
         if (!uploadResponse.ok) {
-            throw new Error(uploadResult.error || 'Image upload failed');
+            throw new Error(uploadResult.error || 'Gagal mengunggah gambar');
         }
         imageUrl = uploadResult.url;
       }
       
-      // Step 2: Update product data
       const response = await fetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: {
@@ -162,7 +157,7 @@ export default function EditProductPage() {
           price: parseFloat(formData.price),
           stock: parseInt(formData.stock),
           categoryId: formData.categoryId,
-          imageUrl: imageUrl, // Send new or existing URL
+          imageUrl: imageUrl,
           isActive: formData.isActive
         })
       })
@@ -170,41 +165,45 @@ export default function EditProductPage() {
       const data = await response.json()
 
       if (data.success) {
-        toast.success('Product updated successfully!')
+        toast.success('Produk berhasil diperbarui!')
         router.push('/admin/products')
       } else {
-        toast.error(data.details || data.error || 'Failed to update product')
+        toast.error(data.details || data.error || 'Gagal memperbarui produk')
       }
     } catch (error: any) {
-      console.error('Error updating product:', error)
-      toast.error(`Update failed: ${error.message}`)
+      console.error('Gagal memperbarui produk:', error)
+      toast.error(`Pembaruan gagal: ${error.message}`)
     } finally {
       setSaving(false)
     }
   }
 
   const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to archive "${product?.name}"?`)) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/products/${productId}`, {
-        method: 'DELETE'
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success('Product archived successfully!')
-        router.push('/admin/products')
-      } else {
-        toast.error(data.details || data.error || 'Failed to archive product')
-      }
-    } catch (error: any) {
-      console.error('Error deleting product:', error)
-      toast.error(`Archive failed: ${error.message}`)
-    }
+    toast(`Apakah Anda yakin ingin mengarsipkan "${product?.name}"?`, {
+        action: {
+            label: 'Arsipkan',
+            onClick: async () => {
+                try {
+                    const response = await fetch(`/api/products/${productId}`, {
+                        method: 'DELETE'
+                    })
+                    const data = await response.json()
+                    if (data.success) {
+                        toast.success('Produk berhasil diarsipkan!')
+                        router.push('/admin/products')
+                    } else {
+                        throw new Error(data.details || data.error || 'Gagal mengarsipkan produk')
+                    }
+                } catch (error: any) {
+                    console.error('Gagal menghapus produk:', error)
+                    toast.error(`Pengarsipan gagal: ${error.message}`)
+                }
+            }
+        },
+        cancel: {
+            label: 'Batal'
+        }
+    })
   }
 
   if (status === 'loading' || loading) {
@@ -224,19 +223,18 @@ export default function EditProductPage() {
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Link href="/admin/products">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Products
+              Kembali ke Produk
             </Button>
           </Link>
           <div className="border-l h-6"></div>
           <div>
-            <h1 className="text-2xl font-bold">Edit Product</h1>
-            <p className="text-gray-600 truncate max-w-sm">Editing: {product.name}</p>
+            <h1 className="text-2xl font-bold">Ubah Produk</h1>
+            <p className="text-gray-600 truncate max-w-sm">Mengubah: {product.name}</p>
           </div>
         </div>
         
@@ -246,43 +244,41 @@ export default function EditProductPage() {
           className="ml-auto"
         >
           <Trash2 className="w-4 h-4 mr-2" />
-          Archive Product
+          Arsipkan Produk
         </Button>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Product Information</CardTitle>
+                <CardTitle>Informasi Produk</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Product Name *</Label>
+                  <Label htmlFor="name">Nama Produk *</Label>
                   <Input id="name" type="text" value={formData.name} onChange={(e) => handleChange('name', e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Deskripsi</Label>
                   <textarea id="description" rows={4} value={formData.description} onChange={(e) => handleChange('description', e.target.value)} className="w-full px-3 py-2 border border-input rounded-md resize-none" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price ($) *</Label>
+                    <Label htmlFor="price">Harga ($) *</Label>
                     <Input id="price" type="number" step="0.01" min="0" value={formData.price} onChange={(e) => handleChange('price', e.target.value)} required />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="stock">Stock Quantity *</Label>
+                    <Label htmlFor="stock">Jumlah Stok *</Label>
                     <Input id="stock" type="number" min="0" value={formData.stock} onChange={(e) => handleChange('stock', e.target.value)} required />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
+                  <Label htmlFor="category">Kategori *</Label>
                   <Select value={formData.categoryId} onValueChange={(value) => handleChange('categoryId', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
+                      <SelectValue placeholder="Pilih kategori" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((category) => (
@@ -300,8 +296,8 @@ export default function EditProductPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="true">Active</SelectItem>
-                      <SelectItem value="false">Inactive</SelectItem>
+                      <SelectItem value="true">Aktif</SelectItem>
+                      <SelectItem value="false">Tidak Aktif</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -310,19 +306,19 @@ export default function EditProductPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Product Image</CardTitle>
+                <CardTitle>Gambar Produk</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="imageFile">Upload New Image</Label>
+                  <Label htmlFor="imageFile">Unggah Gambar Baru</Label>
                   <Input id="imageFile" type="file" accept="image/*" onChange={handleFileChange} className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" />
-                  <p className="text-sm text-gray-600">Select a new image to replace the current one. Leave empty to keep the existing image.</p>
+                  <p className="text-sm text-gray-600">Pilih gambar baru untuk menggantikan yang sekarang. Biarkan kosong untuk mempertahankan gambar yang ada.</p>
                 </div>
                 {previewUrl && (
                   <div className="mt-4">
-                    <Label>Image Preview</Label>
+                    <Label>Pratinjau Gambar</Label>
                     <div className="mt-2 border rounded-lg p-4">
-                      <img src={previewUrl} alt="Product preview" className="max-w-full h-48 object-cover rounded-lg mx-auto" />
+                      <img src={previewUrl} alt="Pratinjau produk" className="max-w-full h-48 object-cover rounded-lg mx-auto" />
                     </div>
                   </div>
                 )}
@@ -330,15 +326,14 @@ export default function EditProductPage() {
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Actions</CardTitle>
+                <CardTitle>Aksi</CardTitle>
               </CardHeader>
               <CardContent>
                 <Button type="submit" className="w-full" disabled={saving}>
-                  {saving ? 'Saving...' : 'Update Product'}
+                  {saving ? 'Menyimpan...' : 'Perbarui Produk'}
                 </Button>
               </CardContent>
             </Card>

@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -41,18 +40,17 @@ export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState('store')
   
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({
-    storeName: 'E-Shop',
-    storeDescription: 'Your trusted online shopping destination',
+    storeName: 'Ravello',
+    storeDescription: 'Tujuan belanja online terpercaya Anda',
     storeEmail: 'admin@example.com',
-    storePhone: '+1 (555) 123-4567',
-    storeAddress: '123 Commerce St, Business City, BC 12345',
+    storePhone: '+62 812 3456 7890',
+    storeAddress: 'Jl. Niaga No. 123, Kota Bisnis, 12345',
     currency: 'USD',
-    taxRate: 8.5,
-    shippingFee: 10,
+    taxRate: 11,
+    shippingFee: 5,
     freeShippingThreshold: 100
   })
 
-  
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login')
@@ -71,11 +69,11 @@ export default function AdminSettingsPage() {
   const saveStoreSettings = async () => {
     setLoading(true)
     try {
-      
+      // Simulasi panggilan API
       await new Promise(resolve => setTimeout(resolve, 1000))
-      toast.success('Store settings saved successfully!')
+      toast.success('Pengaturan toko berhasil disimpan!')
     } catch (error) {
-      toast.error('Failed to save store settings')
+      toast.error('Gagal menyimpan pengaturan toko')
     } finally {
       setLoading(false)
     }
@@ -83,22 +81,22 @@ export default function AdminSettingsPage() {
 
   const exportData = async () => {
     try {
-      toast.info('Preparing data export...')
-      
+      toast.info('Mempersiapkan ekspor data...')
+      // Simulasi proses ekspor
       await new Promise(resolve => setTimeout(resolve, 2000))
-      toast.success('Data export completed! Check your downloads.')
+      toast.success('Ekspor data selesai! Periksa unduhan Anda.')
     } catch (error) {
-      toast.error('Failed to export data')
+      toast.error('Gagal mengekspor data')
     }
   }
 
   const clearCache = async () => {
     try {
-      toast.info('Clearing cache...')
+      toast.info('Membersihkan cache...')
       await new Promise(resolve => setTimeout(resolve, 1000))
-      toast.success('Cache cleared successfully!')
+      toast.success('Cache berhasil dibersihkan!')
     } catch (error) {
-      toast.error('Failed to clear cache')
+      toast.error('Gagal membersihkan cache')
     }
   }
 
@@ -118,25 +116,23 @@ export default function AdminSettingsPage() {
   }
 
   const tabs = [
-    { id: 'store', label: 'Store Settings', icon: Store },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'system', label: 'System', icon: Database }
+    { id: 'store', label: 'Pengaturan Toko', icon: Store },
+    { id: 'notifications', label: 'Notifikasi', icon: Bell },
+    { id: 'security', label: 'Keamanan', icon: Shield },
+    { id: 'system', label: 'Sistem', icon: Database }
   ]
 
   return (
     <div className="p-6">
-      
       <div className="flex items-center gap-4 mb-6">
         <Settings className="w-6 h-6" />
         <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-gray-600">Manage your store configuration</p>
+          <h1 className="text-2xl font-bold">Pengaturan</h1>
+          <p className="text-gray-600">Kelola konfigurasi toko Anda</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        
         <div className="lg:col-span-1">
           <Card>
             <CardContent className="p-4">
@@ -163,17 +159,16 @@ export default function AdminSettingsPage() {
           </Card>
         </div>
 
-        
         <div className="lg:col-span-3">
           {activeTab === 'store' && (
             <Card>
               <CardHeader>
-                <CardTitle>Store Information</CardTitle>
+                <CardTitle>Informasi Toko</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="storeName">Store Name</Label>
+                    <Label htmlFor="storeName">Nama Toko</Label>
                     <Input
                       id="storeName"
                       value={storeSettings.storeName}
@@ -182,7 +177,7 @@ export default function AdminSettingsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="storeEmail">Store Email</Label>
+                    <Label htmlFor="storeEmail">Email Toko</Label>
                     <Input
                       id="storeEmail"
                       type="email"
@@ -193,7 +188,7 @@ export default function AdminSettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="storeDescription">Store Description</Label>
+                  <Label htmlFor="storeDescription">Deskripsi Toko</Label>
                   <Input
                     id="storeDescription"
                     value={storeSettings.storeDescription}
@@ -203,7 +198,7 @@ export default function AdminSettingsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="storePhone">Phone Number</Label>
+                    <Label htmlFor="storePhone">Nomor Telepon</Label>
                     <Input
                       id="storePhone"
                       value={storeSettings.storePhone}
@@ -212,7 +207,7 @@ export default function AdminSettingsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="currency">Currency</Label>
+                    <Label htmlFor="currency">Mata Uang</Label>
                     <Select 
                       value={storeSettings.currency} 
                       onValueChange={(value) => handleStoreSettingChange('currency', value)}
@@ -231,7 +226,7 @@ export default function AdminSettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="storeAddress">Store Address</Label>
+                  <Label htmlFor="storeAddress">Alamat Toko</Label>
                   <Input
                     id="storeAddress"
                     value={storeSettings.storeAddress}
@@ -241,7 +236,7 @@ export default function AdminSettingsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="taxRate">Tax Rate (%)</Label>
+                    <Label htmlFor="taxRate">Tarif Pajak (%)</Label>
                     <Input
                       id="taxRate"
                       type="number"
@@ -252,7 +247,7 @@ export default function AdminSettingsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="shippingFee">Shipping Fee ($)</Label>
+                    <Label htmlFor="shippingFee">Biaya Pengiriman ($)</Label>
                     <Input
                       id="shippingFee"
                       type="number"
@@ -263,7 +258,7 @@ export default function AdminSettingsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="freeShippingThreshold">Free Shipping Threshold ($)</Label>
+                    <Label htmlFor="freeShippingThreshold">Ambang Batas Gratis Ongkir ($)</Label>
                     <Input
                       id="freeShippingThreshold"
                       type="number"
@@ -276,7 +271,7 @@ export default function AdminSettingsPage() {
 
                 <Button onClick={saveStoreSettings} disabled={loading}>
                   <Save className="w-4 h-4 mr-2" />
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </Button>
               </CardContent>
             </Card>
@@ -285,38 +280,38 @@ export default function AdminSettingsPage() {
           {activeTab === 'notifications' && (
             <Card>
               <CardHeader>
-                <CardTitle>Notification Settings</CardTitle>
+                <CardTitle>Pengaturan Notifikasi</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Email Notifications</h4>
-                      <p className="text-sm text-gray-600">Receive email notifications for important events</p>
+                      <h4 className="font-medium">Notifikasi Email</h4>
+                      <p className="text-sm text-gray-600">Terima notifikasi email untuk acara penting</p>
                     </div>
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">New Order Alerts</h4>
-                      <p className="text-sm text-gray-600">Get notified when new orders are placed</p>
+                      <h4 className="font-medium">Peringatan Pesanan Baru</h4>
+                      <p className="text-sm text-gray-600">Dapatkan notifikasi saat pesanan baru masuk</p>
                     </div>
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Low Stock Alerts</h4>
-                      <p className="text-sm text-gray-600">Get notified when products are running low</p>
+                      <h4 className="font-medium">Peringatan Stok Rendah</h4>
+                      <p className="text-sm text-gray-600">Dapatkan notifikasi saat stok produk menipis</p>
                     </div>
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">System Updates</h4>
-                      <p className="text-sm text-gray-600">Receive notifications about system updates</p>
+                      <h4 className="font-medium">Pembaruan Sistem</h4>
+                      <p className="text-sm text-gray-600">Terima notifikasi tentang pembaruan sistem</p>
                     </div>
                     <input type="checkbox" className="h-4 w-4" />
                   </div>
@@ -324,7 +319,7 @@ export default function AdminSettingsPage() {
 
                 <Button>
                   <Save className="w-4 h-4 mr-2" />
-                  Save Notification Settings
+                  Simpan Pengaturan Notifikasi
                 </Button>
               </CardContent>
             </Card>
@@ -333,15 +328,15 @@ export default function AdminSettingsPage() {
           {activeTab === 'security' && (
             <Card>
               <CardHeader>
-                <CardTitle>Security Settings</CardTitle>
+                <CardTitle>Pengaturan Keamanan</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-medium mb-2">Password Requirements</h4>
+                    <h4 className="font-medium mb-2">Persyaratan Kata Sandi</h4>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm">Minimum password length</span>
+                        <span className="text-sm">Panjang kata sandi minimum</span>
                         <Select defaultValue="8">
                           <SelectTrigger className="w-20">
                             <SelectValue />
@@ -356,22 +351,22 @@ export default function AdminSettingsPage() {
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-sm">Require uppercase letters</span>
+                        <span className="text-sm">Wajibkan huruf besar</span>
                         <input type="checkbox" defaultChecked className="h-4 w-4" />
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-sm">Require numbers</span>
+                        <span className="text-sm">Wajibkan angka</span>
                         <input type="checkbox" defaultChecked className="h-4 w-4" />
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium mb-2">Session Management</h4>
+                    <h4 className="font-medium mb-2">Manajemen Sesi</h4>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm">Session timeout (hours)</span>
+                        <span className="text-sm">Batas waktu sesi (jam)</span>
                         <Select defaultValue="24">
                           <SelectTrigger className="w-20">
                             <SelectValue />
@@ -390,7 +385,7 @@ export default function AdminSettingsPage() {
 
                 <Button>
                   <Shield className="w-4 h-4 mr-2" />
-                  Save Security Settings
+                  Simpan Pengaturan Keamanan
                 </Button>
               </CardContent>
             </Card>
@@ -399,50 +394,50 @@ export default function AdminSettingsPage() {
           {activeTab === 'system' && (
             <Card>
               <CardHeader>
-                <CardTitle>System Management</CardTitle>
+                <CardTitle>Manajemen Sistem</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-medium mb-2">Database Management</h4>
+                    <h4 className="font-medium mb-2">Manajemen Database</h4>
                     <div className="space-y-3">
                       <Button variant="outline" onClick={exportData}>
                         <Database className="w-4 h-4 mr-2" />
-                        Export Database
+                        Ekspor Database
                       </Button>
                       <p className="text-sm text-gray-600">
-                        Export all your store data including products, orders, and customers.
+                        Ekspor semua data toko Anda termasuk produk, pesanan, dan pelanggan.
                       </p>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium mb-2">Cache Management</h4>
+                    <h4 className="font-medium mb-2">Manajemen Cache</h4>
                     <div className="space-y-3">
                       <Button variant="outline" onClick={clearCache}>
                         <Trash2 className="w-4 h-4 mr-2" />
-                        Clear Cache
+                        Bersihkan Cache
                       </Button>
                       <p className="text-sm text-gray-600">
-                        Clear application cache to improve performance and free up storage.
+                        Bersihkan cache aplikasi untuk meningkatkan kinerja dan mengosongkan penyimpanan.
                       </p>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium mb-2">System Information</h4>
+                    <h4 className="font-medium mb-2">Informasi Sistem</h4>
                     <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Application Version:</span>
+                        <span className="text-sm text-gray-600">Versi Aplikasi:</span>
                         <span className="text-sm font-medium">v1.0.0</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Database Version:</span>
+                        <span className="text-sm text-gray-600">Versi Database:</span>
                         <span className="text-sm font-medium">PostgreSQL 15.0</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Last Backup:</span>
-                        <span className="text-sm font-medium">2024-01-15 10:30 AM</span>
+                        <span className="text-sm text-gray-600">Cadangan Terakhir:</span>
+                        <span className="text-sm font-medium">15 Jan 2024 10:30</span>
                       </div>
                     </div>
                   </div>

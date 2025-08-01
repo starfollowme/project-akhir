@@ -7,8 +7,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'E-Shop - Your Online Store',
-  description: 'Modern e-commerce platform built with Next.js',
+  title: 'Ravello - Toko Online Anda',
+  description: 'Platform e-commerce modern yang dibangun dengan Next.js',
 }
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body className={inter.className}>
         <Providers>
           <div className="min-h-screen bg-background">

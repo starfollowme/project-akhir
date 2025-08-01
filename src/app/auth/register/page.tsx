@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState } from 'react'
@@ -24,12 +23,11 @@ export default function RegisterPage() {
   
   const router = useRouter()
 
-  
   const passwordRequirements = [
-    { regex: /.{8,}/, text: 'At least 8 characters' },
-    { regex: /[A-Z]/, text: 'One uppercase letter' },
-    { regex: /[a-z]/, text: 'One lowercase letter' },
-    { regex: /\d/, text: 'One number' }
+    { regex: /.{8,}/, text: 'Minimal 8 karakter' },
+    { regex: /[A-Z]/, text: 'Satu huruf besar' },
+    { regex: /[a-z]/, text: 'Satu huruf kecil' },
+    { regex: /\d/, text: 'Satu angka' }
   ]
 
   const isPasswordValid = passwordRequirements.every(req => 
@@ -46,7 +44,7 @@ export default function RegisterPage() {
     e.preventDefault()
     
     if (!isFormValid) {
-      toast.error('Please fill all fields correctly')
+      toast.error('Harap isi semua bidang dengan benar')
       return
     }
 
@@ -68,14 +66,14 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (data.success) {
-        toast.success('Account created successfully! Please sign in.')
+        toast.success('Akun berhasil dibuat! Silakan masuk.')
         router.push('/auth/login')
       } else {
-        toast.error(data.error || 'Registration failed')
+        toast.error(data.error || 'Pendaftaran gagal')
       }
     } catch (error) {
-      console.error('Registration error:', error)
-      toast.error('Something went wrong. Please try again.')
+      console.error('Kesalahan pendaftaran:', error)
+      toast.error('Terjadi kesalahan. Silakan coba lagi.')
     } finally {
       setIsLoading(false)
     }
@@ -91,37 +89,34 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
-        
         <div className="text-center">
           <Link href="/" className="inline-flex items-center space-x-2 text-2xl font-bold">
             <Package className="h-8 w-8" />
-            <span>E-Shop</span>
+            <span>Ravello</span>
           </Link>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Create your account
+            Buat akun Anda
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
+            Atau{' '}
             <Link href="/auth/login" className="font-medium text-primary hover:underline">
-              sign in to your existing account
+              masuk ke akun yang sudah ada
             </Link>
           </p>
         </div>
 
-        
         <Card>
           <CardHeader>
-            <CardTitle>Get started</CardTitle>
+            <CardTitle>Mulai</CardTitle>
             <CardDescription>
-              Create your account to start shopping
+              Buat akun Anda untuk mulai berbelanja
             </CardDescription>
           </CardHeader>
           
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
-              
               <div className="space-y-2">
-                <Label htmlFor="name">Full name</Label>
+                <Label htmlFor="name">Nama Lengkap</Label>
                 <Input
                   id="name"
                   name="name"
@@ -130,13 +125,12 @@ export default function RegisterPage() {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="Enter your full name"
+                  placeholder="Masukkan nama lengkap Anda"
                 />
               </div>
 
-              
               <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
+                <Label htmlFor="email">Alamat Email</Label>
                 <Input
                   id="email"
                   name="email"
@@ -145,13 +139,12 @@ export default function RegisterPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="Enter your email"
+                  placeholder="Masukkan email Anda"
                 />
               </div>
 
-              
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Kata Sandi</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -161,7 +154,7 @@ export default function RegisterPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Create a password"
+                    placeholder="Buat kata sandi"
                   />
                   <button
                     type="button"
@@ -175,7 +168,6 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
-                
                 
                 {formData.password && (
                   <div className="mt-2 space-y-1">
@@ -201,9 +193,8 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm password</Label>
+                <Label htmlFor="confirmPassword">Konfirmasi Kata Sandi</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -213,7 +204,7 @@ export default function RegisterPage() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    placeholder="Confirm your password"
+                    placeholder="Konfirmasi kata sandi Anda"
                   />
                   <button
                     type="button"
@@ -228,7 +219,6 @@ export default function RegisterPage() {
                   </button>
                 </div>
                 
-                
                 {formData.confirmPassword && (
                   <div className={`flex items-center text-xs ${
                     formData.password === formData.confirmPassword
@@ -238,28 +228,28 @@ export default function RegisterPage() {
                     {formData.password === formData.confirmPassword ? (
                       <>
                         <Check className="h-3 w-3 mr-1" />
-                        Passwords match
+                        Kata sandi cocok
                       </>
                     ) : (
                       <>
                         <X className="h-3 w-3 mr-1" />
-                        Passwords don't match
+                        Kata sandi tidak cocok
                       </>
                     )}
                   </div>
                 )}
               </div>
 
-              
               <div className="text-xs text-gray-600">
-                By creating an account, you agree to our{' '}
+                Dengan membuat akun, Anda menyetujui{' '}
                 <Link href="/terms" className="text-primary hover:underline">
-                  Terms of Service
+                  Ketentuan Layanan
                 </Link>{' '}
-                and{' '}
+                dan{' '}
                 <Link href="/privacy" className="text-primary hover:underline">
-                  Privacy Policy
+                  Kebijakan Privasi
                 </Link>
+                {' '}kami
               </div>
             </CardContent>
 
@@ -269,7 +259,7 @@ export default function RegisterPage() {
                 className="w-full" 
                 disabled={isLoading || !isFormValid}
               >
-                {isLoading ? 'Creating account...' : 'Create account'}
+                {isLoading ? 'Membuat akun...' : 'Buat Akun'}
               </Button>
             </CardFooter>
           </form>

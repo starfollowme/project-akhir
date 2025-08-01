@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -56,14 +55,12 @@ export default function CreateProductPage() {
       const data = await response.json()
       if (Array.isArray(data)) {
         setCategories(data)
-      } else if (data.success && Array.isArray(data.data)) {
-        setCategories(data.data)
       } else {
-        throw new Error('Invalid categories data')
+        throw new Error('Data kategori tidak valid')
       }
     } catch (error) {
-      console.error('Error fetching categories:', error)
-      toast.error('Failed to load categories')
+      console.error('Gagal mengambil kategori:', error)
+      toast.error('Gagal memuat kategori')
     }
   }
 
@@ -73,7 +70,6 @@ export default function CreateProductPage() {
       [field]: value
     }))
   }
-  
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -86,23 +82,21 @@ export default function CreateProductPage() {
     }
   }
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     const { name, price, stock, categoryId, description } = formData
 
-    if (!name.trim()) return toast.error('Product name is required')
-    if (!price || parseFloat(price) <= 0) return toast.error('Valid price is required')
-    if (!stock || parseInt(stock) < 0) return toast.error('Valid stock quantity is required')
-    if (!categoryId) return toast.error('Category is required')
+    if (!name.trim()) return toast.error('Nama produk wajib diisi')
+    if (!price || parseFloat(price) <= 0) return toast.error('Harga yang valid wajib diisi')
+    if (!stock || parseInt(stock) < 0) return toast.error('Jumlah stok yang valid wajib diisi')
+    if (!categoryId) return toast.error('Kategori wajib diisi')
 
     setLoading(true)
 
     try {
       let imageUrl: string | undefined = undefined;
 
-      
       if (selectedFile) {
         const imageFormData = new FormData();
         imageFormData.append('file', selectedFile);
@@ -114,13 +108,13 @@ export default function CreateProductPage() {
 
         const uploadResult = await uploadResponse.json();
         if (!uploadResponse.ok) {
-          throw new Error(uploadResult.error || 'Image upload failed');
+          throw new Error(uploadResult.error || 'Gagal mengunggah gambar');
         }
         imageUrl = uploadResult.url;
       }
 
-      
-      const response = await fetch('/api/products', {
+      // Menggunakan API admin yang benar
+      const response = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -135,14 +129,16 @@ export default function CreateProductPage() {
 
       const result = await response.json()
       if (result.success) {
-        toast.success('Product created successfully!')
+        toast.success('Produk berhasil dibuat!')
         router.push('/admin/products')
       } else {
-        throw new Error(result.error || 'Failed to create product')
+        // Menampilkan detail error dari validasi Zod jika ada
+        const errorDetails = result.details ? Object.values(result.details).join(', ') : result.error;
+        throw new Error(errorDetails || 'Gagal membuat produk')
       }
     } catch (error: any) {
-      console.error('Submit Error:', error)
-      toast.error(error.message || 'Failed to create product')
+      console.error('Kesalahan pengiriman:', error)
+      toast.error(error.message || 'Gagal membuat produk')
     } finally {
       setLoading(false)
     }
@@ -167,13 +163,13 @@ export default function CreateProductPage() {
         <Link href="/admin/products">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Products
+            Kembali ke Produk
           </Button>
         </Link>
         <div className="border-l h-6"></div>
         <div>
-          <h1 className="text-2xl font-bold">Create New Product</h1>
-          <p className="text-gray-600">Add a new product to your catalog</p>
+          <h1 className="text-2xl font-bold">Buat Produk Baru</h1>
+          <p className="text-gray-600">Tambahkan produk baru ke katalog Anda</p>
         </div>
       </div>
 
@@ -181,35 +177,35 @@ export default function CreateProductPage() {
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Product Information</CardTitle>
+              <CardTitle>Informasi Produk</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Product Name *</Label>
-                <Input id="name" type="text" value={formData.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="Enter product name" required />
+                <Label htmlFor="name">Nama Produk *</Label>
+                <Input id="name" type="text" value={formData.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="Masukkan nama produk" required />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <textarea id="description" rows={4} value={formData.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Enter product description" className="w-full px-3 py-2 border border-input rounded-md resize-none" />
+                <Label htmlFor="description">Deskripsi</Label>
+                <textarea id="description" rows={4} value={formData.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Masukkan deskripsi produk" className="w-full px-3 py-2 border border-input rounded-md resize-none" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price ($) *</Label>
+                  <Label htmlFor="price">Harga ($) *</Label>
                   <Input id="price" type="number" step="0.01" min="0" value={formData.price} onChange={(e) => handleChange('price', e.target.value)} placeholder="0.00" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="stock">Stock Quantity *</Label>
+                  <Label htmlFor="stock">Jumlah Stok *</Label>
                   <Input id="stock" type="number" min="0" value={formData.stock} onChange={(e) => handleChange('stock', e.target.value)} placeholder="0" required />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="category">Kategori *</Label>
                 <Select value={formData.categoryId} onValueChange={(value) => handleChange('categoryId', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder="Pilih kategori" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.length > 0 ? (
@@ -219,7 +215,7 @@ export default function CreateProductPage() {
                         </SelectItem>
                       ))
                     ) : (
-                      <div className="p-2 text-sm text-gray-500">No categories available</div>
+                      <div className="p-2 text-sm text-gray-500">Tidak ada kategori</div>
                     )}
                   </SelectContent>
                 </Select>
@@ -227,24 +223,23 @@ export default function CreateProductPage() {
             </CardContent>
           </Card>
 
-          
           <Card>
             <CardHeader>
-              <CardTitle>Product Image</CardTitle>
+              <CardTitle>Gambar Produk</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="imageFile">Upload Image</Label>
+                <Label htmlFor="imageFile">Unggah Gambar</Label>
                 <Input id="imageFile" type="file" accept="image/*" onChange={handleFileChange} className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" />
-                <p className="text-sm text-gray-600">Upload an image file for the product. Leave empty if no image is available.</p>
+                <p className="text-sm text-gray-600">Unggah file gambar untuk produk. Kosongkan jika tidak ada.</p>
               </div>
               {previewUrl && (
                 <div className="mt-4">
-                  <Label>Preview</Label>
+                  <Label>Pratinjau</Label>
                   <div className="mt-2 border rounded-lg p-4">
                     <img
                       src={previewUrl}
-                      alt="Product preview"
+                      alt="Pratinjau produk"
                       className="max-w-full h-48 object-cover rounded-lg mx-auto"
                     />
                   </div>
@@ -257,25 +252,25 @@ export default function CreateProductPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Actions</CardTitle>
+              <CardTitle>Aksi</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Creating...
+                    Membuat...
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-2" />
-                    Create Product
+                    Buat Produk
                   </>
                 )}
               </Button>
               <Link href="/admin/products" className="block">
                 <Button type="button" variant="outline" className="w-full">
-                  Cancel
+                  Batal
                 </Button>
               </Link>
             </CardContent>

@@ -1,4 +1,3 @@
-// src/app/orders/[id]/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -33,14 +32,12 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true)
   const [isCancelling, setIsCancelling] = useState(false)
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))
     }
   }, [status, router])
 
-  // Fetch order details
   useEffect(() => {
     if (session && orderId) {
       fetchOrderDetails()
@@ -56,96 +53,84 @@ export default function OrderDetailPage() {
       if (data.success) {
         setOrder(data.data)
       } else {
-        toast.error(data.details || data.error || 'Order not found')
+        toast.error(data.details || data.error || 'Pesanan tidak ditemukan')
         router.push('/orders')
       }
     } catch (error) {
-      console.error('Error fetching order:', error)
-      toast.error('Failed to load order details')
+      console.error('Gagal mengambil detail pesanan:', error)
+      toast.error('Gagal memuat detail pesanan')
       router.push('/orders')
     } finally {
       setLoading(false)
     }
   }
 
-  // ✨ FIXED: Fungsi untuk membatalkan order
   const handleCancelOrder = async () => {
-    if (!confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
-        return;
-    }
-    setIsCancelling(true);
-    try {
-        const response = await fetch(`/api/orders/${orderId}`, {
-            method: 'DELETE',
-        });
-        const result = await response.json();
-        if (!response.ok) {
-            throw new Error(result.details || result.error || 'Failed to cancel order');
+    toast('Apakah Anda yakin ingin membatalkan pesanan ini?', {
+        description: 'Tindakan ini tidak dapat diurungkan.',
+        action: {
+            label: 'Batalkan Pesanan',
+            onClick: async () => {
+                setIsCancelling(true);
+                try {
+                    const response = await fetch(`/api/orders/${orderId}`, {
+                        method: 'DELETE',
+                    });
+                    const result = await response.json();
+                    if (!response.ok) {
+                        throw new Error(result.details || result.error || 'Gagal membatalkan pesanan');
+                    }
+                    toast.success('Pesanan berhasil dibatalkan');
+                    fetchOrderDetails(); // Muat ulang detail pesanan
+                } catch (error: any) {
+                    console.error('Gagal membatalkan pesanan:', error);
+                    toast.error(error.message);
+                } finally {
+                    setIsCancelling(false);
+                }
+            }
+        },
+        cancel: {
+            label: 'Tidak'
         }
-        toast.success('Order cancelled successfully');
-        fetchOrderDetails(); // Refresh order details
-    } catch (error) {
-        console.error('Error cancelling order:', error);
-        toast.error(error.message);
-    } finally {
-        setIsCancelling(false);
-    }
+    });
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'PROCESSING':
-        return 'bg-blue-100 text-blue-800'
-      case 'SHIPPED':
-        return 'bg-purple-100 text-purple-800'
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800'
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800'
+      case 'PROCESSING': return 'bg-blue-100 text-blue-800'
+      case 'SHIPPED': return 'bg-purple-100 text-purple-800'
+      case 'DELIVERED': return 'bg-green-100 text-green-800'
+      case 'CANCELLED': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'PENDING':
-        return <Clock className="w-4 h-4" />
-      case 'PROCESSING':
-        return <Package className="w-4 h-4" />
-      case 'SHIPPED':
-        return <Truck className="w-4 h-4" />
-      case 'DELIVERED':
-        return <CheckCircle className="w-4 h-4" />
-      case 'CANCELLED':
-        return <XCircle className="w-4 h-4" />
-      default:
-        return <Package className="w-4 h-4" />
+      case 'PENDING': return <Clock className="w-4 h-4" />
+      case 'PROCESSING': return <Package className="w-4 h-4" />
+      case 'SHIPPED': return <Truck className="w-4 h-4" />
+      case 'DELIVERED': return <CheckCircle className="w-4 h-4" />
+      case 'CANCELLED': return <XCircle className="w-4 h-4" />
+      default: return <Package className="w-4 h-4" />
     }
   }
 
   const getStatusDescription = (status: string) => {
     switch (status) {
-      case 'PENDING':
-        return 'Your order has been received and is being reviewed.'
-      case 'PROCESSING':
-        return 'Your order is being prepared for shipment.'
-      case 'SHIPPED':
-        return 'Your order has been shipped and is on its way.'
-      case 'DELIVERED':
-        return 'Your order has been successfully delivered.'
-      case 'CANCELLED':
-        return 'Your order has been cancelled.'
-      default:
-        return 'Order status is being updated.'
+      case 'PENDING': return 'Pesanan Anda telah diterima dan sedang ditinjau.'
+      case 'PROCESSING': return 'Pesanan Anda sedang disiapkan untuk pengiriman.'
+      case 'SHIPPED': return 'Pesanan Anda telah dikirim dan sedang dalam perjalanan.'
+      case 'DELIVERED': return 'Pesanan Anda telah berhasil diantar.'
+      case 'CANCELLED': return 'Pesanan Anda telah dibatalkan.'
+      default: return 'Status pesanan sedang diperbarui.'
     }
   }
 
-  // ✨ FIXED: Mengubah tipe parameter menjadi Date
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -169,7 +154,7 @@ export default function OrderDetailPage() {
   }
 
   if (!session) {
-    return null // Will redirect
+    return null
   }
 
   if (!order) {
@@ -177,14 +162,14 @@ export default function OrderDetailPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto text-center">
           <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">Order not found</h2>
+          <h2 className="text-2xl font-semibold mb-2">Pesanan tidak ditemukan</h2>
           <p className="text-gray-600 mb-6">
-            The order you're looking for doesn't exist or you don't have permission to view it.
+            Pesanan yang Anda cari tidak ada atau Anda tidak memiliki izin untuk melihatnya.
           </p>
           <Link href="/orders">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Orders
+              Kembali ke Daftar Pesanan
             </Button>
           </Link>
         </div>
@@ -195,40 +180,36 @@ export default function OrderDetailPage() {
   const subtotal = order.items.reduce((sum, item) => {
     return sum + (Number(item.price) * item.quantity)
   }, 0)
-
-  const shipping = subtotal > 100 ? 0 : 10
-  const tax = subtotal * 0.08 // 8% tax
+  
   const total = Number(order.total)
+  const shipping = total - subtotal; // Simple calculation for shipping
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Link href="/orders">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Orders
+              Kembali ke Pesanan
             </Button>
           </Link>
           <div className="border-l h-6"></div>
           <div>
-            <h1 className="text-2xl font-bold">Order #{order.orderNumber}</h1>
+            <h1 className="text-2xl font-bold">Pesanan #{order.orderNumber}</h1>
             <p className="text-gray-600">
-              Placed on {formatDate(order.createdAt)}
+              Dibuat pada {formatDate(order.createdAt)}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Order Status */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   {getStatusIcon(order.status)}
-                  Order Status
+                  Status Pesanan
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -237,7 +218,7 @@ export default function OrderDetailPage() {
                     {order.status}
                   </Badge>
                   <span className="text-sm text-gray-600">
-                    Updated {formatDate(order.updatedAt)}
+                    Diperbarui {formatDate(order.updatedAt)}
                   </span>
                 </div>
                 <p className="text-gray-700">
@@ -246,10 +227,9 @@ export default function OrderDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Order Items */}
             <Card>
               <CardHeader>
-                <CardTitle>Order Items ({order.items.length})</CardTitle>
+                <CardTitle>Barang Pesanan ({order.items.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -278,10 +258,10 @@ export default function OrderDetailPage() {
                           {item.product.name}
                         </Link>
                         <p className="text-sm text-gray-600">
-                          Quantity: {item.quantity}
+                          Kuantitas: {item.quantity}
                         </p>
                         <p className="text-sm text-gray-600">
-                          Price: ${Number(item.price).toFixed(2)} each
+                          Harga: ${Number(item.price).toFixed(2)} / unit
                         </p>
                       </div>
                       
@@ -297,12 +277,10 @@ export default function OrderDetailPage() {
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Order Summary */}
             <Card>
               <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
+                <CardTitle>Ringkasan Pesanan</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
@@ -311,21 +289,10 @@ export default function OrderDetailPage() {
                 </div>
                 
                 <div className="flex justify-between">
-                  <span>Shipping</span>
-                  <span>
-                    {shipping === 0 ? (
-                      <span className="text-green-600">Free</span>
-                    ) : (
-                      `$${shipping.toFixed(2)}`
-                    )}
-                  </span>
+                  <span>Pengiriman</span>
+                  <span>${shipping.toFixed(2)}</span>
                 </div>
-                
-                <div className="flex justify-between">
-                  <span>Tax</span>
-                  <span>${tax.toFixed(2)}</span>
-                </div>
-                
+
                 <hr />
                 
                 <div className="flex justify-between text-lg font-semibold">
@@ -335,19 +302,17 @@ export default function OrderDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>Actions</CardTitle>
+                <CardTitle>Aksi</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {order.status === 'DELIVERED' && (
-                  <Button className="w-full" onClick={() => toast.info('Write a review feature is not yet implemented.')}>
-                    Write a Review
+                  <Button className="w-full" onClick={() => toast.info('Fitur tulis ulasan belum diimplementasikan.')}>
+                    Tulis Ulasan
                   </Button>
                 )}
                 
-                {/* ✨ FIXED: Tombol cancel sekarang berfungsi */}
                 {(order.status === 'PENDING' || order.status === 'PROCESSING') && (
                   <Button 
                     variant="destructive" 
@@ -355,16 +320,16 @@ export default function OrderDetailPage() {
                     onClick={handleCancelOrder}
                     disabled={isCancelling}
                   >
-                    {isCancelling ? 'Cancelling...' : 'Cancel Order'}
+                    {isCancelling ? 'Membatalkan...' : 'Batalkan Pesanan'}
                   </Button>
                 )}
                 
-                <Button variant="outline" className="w-full" onClick={() => toast.info('Download invoice feature is not yet implemented.')}>
-                  Download Invoice
+                <Button variant="outline" className="w-full" onClick={() => toast.info('Fitur unduh faktur belum diimplementasikan.')}>
+                  Unduh Faktur
                 </Button>
                 
-                <Button variant="outline" className="w-full" onClick={() => toast.info('Contact support feature is not yet implemented.')}>
-                  Contact Support
+                <Button variant="outline" className="w-full" onClick={() => toast.info('Fitur hubungi dukungan belum diimplementasikan.')}>
+                  Hubungi Dukungan
                 </Button>
               </CardContent>
             </Card>

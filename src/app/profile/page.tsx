@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -67,14 +66,12 @@ export default function ProfilePage() {
     confirm: false
   })
 
-  
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login?callbackUrl=/profile')
     }
   }, [status, router])
 
- 
   useEffect(() => {
     if (session) {
       fetchProfile()
@@ -94,8 +91,8 @@ export default function ProfilePage() {
         })
       }
     } catch (error) {
-      console.error('Error fetching profile:', error)
-      toast.error('Failed to load profile')
+      console.error('Gagal mengambil data profil:', error)
+      toast.error('Gagal memuat profil')
     } finally {
       setLoading(false)
     }
@@ -117,7 +114,7 @@ export default function ProfilePage() {
 
   const saveProfile = async () => {
     if (!profileData.name.trim()) {
-      toast.error('Name is required')
+      toast.error('Nama wajib diisi')
       return
     }
 
@@ -136,7 +133,6 @@ export default function ProfilePage() {
       if (data.success) {
         setProfile(data.data)
         setIsEditing(false)
-       
         await update({
           ...session,
           user: {
@@ -144,32 +140,31 @@ export default function ProfilePage() {
             name: data.data.name
           }
         })
-        toast.success('Profile updated successfully!')
+        toast.success('Profil berhasil diperbarui!')
       } else {
-        toast.error(data.error || 'Failed to update profile')
+        toast.error(data.error || 'Gagal memperbarui profil')
       }
     } catch (error) {
-      console.error('Error updating profile:', error)
-      toast.error('Failed to update profile')
+      console.error('Gagal memperbarui profil:', error)
+      toast.error('Gagal memperbarui profil')
     } finally {
       setSaving(false)
     }
   }
 
   const changePassword = async () => {
-  
     if (!passwordData.currentPassword) {
-      toast.error('Current password is required')
+      toast.error('Kata sandi saat ini wajib diisi')
       return
     }
     
     if (passwordData.newPassword.length < 8) {
-      toast.error('New password must be at least 8 characters')
+      toast.error('Kata sandi baru minimal harus 8 karakter')
       return
     }
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('New passwords do not match')
+      toast.error('Kata sandi baru tidak cocok')
       return
     }
 
@@ -191,13 +186,13 @@ export default function ProfilePage() {
           newPassword: '',
           confirmPassword: ''
         })
-        toast.success('Password changed successfully!')
+        toast.success('Kata sandi berhasil diubah!')
       } else {
-        toast.error(data.error || 'Failed to change password')
+        toast.error(data.error || 'Gagal mengubah kata sandi')
       }
     } catch (error) {
-      console.error('Error changing password:', error)
-      toast.error('Failed to change password')
+      console.error('Gagal mengubah kata sandi:', error)
+      toast.error('Gagal mengubah kata sandi')
     } finally {
       setSaving(false)
     }
@@ -208,7 +203,7 @@ export default function ProfilePage() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -236,20 +231,18 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">My Profile</h1>
-            <p className="text-gray-600">Manage your account settings</p>
+            <h1 className="text-3xl font-bold">Profil Saya</h1>
+            <p className="text-gray-600">Kelola pengaturan akun Anda</p>
           </div>
           <Button variant="outline" onClick={handleSignOut}>
             <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            Keluar
           </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <Card>
               <CardContent className="p-4">
@@ -257,7 +250,7 @@ export default function ProfilePage() {
                   <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                     <User className="w-10 h-10 text-gray-400" />
                   </div>
-                  <h3 className="font-semibold">{profile.name || 'No Name'}</h3>
+                  <h3 className="font-semibold">{profile.name || 'Tanpa Nama'}</h3>
                   <p className="text-sm text-gray-600">{profile.email}</p>
                   <Badge 
                     variant={profile.role === 'ADMIN' ? 'default' : 'secondary'}
@@ -278,7 +271,7 @@ export default function ProfilePage() {
                     }`}
                   >
                     <User className="w-4 h-4" />
-                    Profile Info
+                    Info Profil
                   </button>
                   
                   <button
@@ -290,35 +283,33 @@ export default function ProfilePage() {
                     }`}
                   >
                     <Lock className="w-4 h-4" />
-                    Change Password
+                    Ubah Kata Sandi
                   </button>
                 </nav>
               </CardContent>
             </Card>
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-3">
             {activeTab === 'profile' && (
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Profile Information</CardTitle>
+                    <CardTitle>Informasi Profil</CardTitle>
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => setIsEditing(!isEditing)}
                     >
                       <Edit className="w-4 h-4 mr-2" />
-                      {isEditing ? 'Cancel' : 'Edit'}
+                      {isEditing ? 'Batal' : 'Ubah'}
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Profile Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="name">Nama Lengkap</Label>
                       <Input
                         id="name"
                         value={profileData.name}
@@ -328,7 +319,7 @@ export default function ProfilePage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email">Alamat Email</Label>
                       <Input
                         id="email"
                         type="email"
@@ -337,24 +328,23 @@ export default function ProfilePage() {
                         className="bg-gray-50"
                       />
                       <p className="text-xs text-gray-500">
-                        Email cannot be changed
+                        Email tidak dapat diubah
                       </p>
                     </div>
                   </div>
 
-                  {/* Account Info */}
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium mb-3">Account Information</h4>
+                    <h4 className="font-medium mb-3">Informasi Akun</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">Joined:</span>
+                        <span className="text-gray-600">Bergabung:</span>
                         <span>{formatDate(profile.createdAt)}</span>
                       </div>
                       
                       <div className="flex items-center gap-2">
                         <Shield className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">Role:</span>
+                        <span className="text-gray-600">Peran:</span>
                         <Badge variant={profile.role === 'ADMIN' ? 'default' : 'secondary'}>
                           {profile.role}
                         </Badge>
@@ -363,7 +353,7 @@ export default function ProfilePage() {
                       {profile._count && (
                         <div className="flex items-center gap-2">
                           <Mail className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-600">Total Orders:</span>
+                          <span className="text-gray-600">Total Pesanan:</span>
                           <span>{profile._count.orders}</span>
                         </div>
                       )}
@@ -374,7 +364,7 @@ export default function ProfilePage() {
                     <div className="flex gap-4">
                       <Button onClick={saveProfile} disabled={saving}>
                         <Save className="w-4 h-4 mr-2" />
-                        {saving ? 'Saving...' : 'Save Changes'}
+                        {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                       </Button>
                       <Button 
                         variant="outline" 
@@ -386,7 +376,7 @@ export default function ProfilePage() {
                           })
                         }}
                       >
-                        Cancel
+                        Batal
                       </Button>
                     </div>
                   )}
@@ -397,20 +387,19 @@ export default function ProfilePage() {
             {activeTab === 'password' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Change Password</CardTitle>
+                  <CardTitle>Ubah Kata Sandi</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
-                    {/* Current Password */}
                     <div className="space-y-2">
-                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <Label htmlFor="currentPassword">Kata Sandi Saat Ini</Label>
                       <div className="relative">
                         <Input
                           id="currentPassword"
                           type={showPasswords.current ? 'text' : 'password'}
                           value={passwordData.currentPassword}
                           onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
-                          placeholder="Enter your current password"
+                          placeholder="Masukkan kata sandi Anda saat ini"
                         />
                         <button
                           type="button"
@@ -426,16 +415,15 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {/* New Password */}
                     <div className="space-y-2">
-                      <Label htmlFor="newPassword">New Password</Label>
+                      <Label htmlFor="newPassword">Kata Sandi Baru</Label>
                       <div className="relative">
                         <Input
                           id="newPassword"
                           type={showPasswords.new ? 'text' : 'password'}
                           value={passwordData.newPassword}
                           onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
-                          placeholder="Enter your new password"
+                          placeholder="Masukkan kata sandi baru Anda"
                         />
                         <button
                           type="button"
@@ -451,16 +439,15 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {/* Confirm Password */}
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <Label htmlFor="confirmPassword">Konfirmasi Kata Sandi Baru</Label>
                       <div className="relative">
                         <Input
                           id="confirmPassword"
                           type={showPasswords.confirm ? 'text' : 'password'}
                           value={passwordData.confirmPassword}
                           onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
-                          placeholder="Confirm your new password"
+                          placeholder="Konfirmasi kata sandi baru Anda"
                         />
                         <button
                           type="button"
@@ -477,20 +464,19 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {/* Password Requirements */}
                   <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Password Requirements:</h4>
+                    <h4 className="font-medium text-blue-900 mb-2">Persyaratan Kata Sandi:</h4>
                     <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• At least 8 characters long</li>
-                      <li>• Contains at least one uppercase letter</li>
-                      <li>• Contains at least one lowercase letter</li>
-                      <li>• Contains at least one number</li>
+                      <li>• Minimal 8 karakter</li>
+                      <li>• Terdiri dari minimal satu huruf besar</li>
+                      <li>• Terdiri dari minimal satu huruf kecil</li>
+                      <li>• Terdiri dari minimal satu angka</li>
                     </ul>
                   </div>
 
                   <Button onClick={changePassword} disabled={saving}>
                     <Lock className="w-4 h-4 mr-2" />
-                    {saving ? 'Changing...' : 'Change Password'}
+                    {saving ? 'Mengubah...' : 'Ubah Kata Sandi'}
                   </Button>
                 </CardContent>
               </Card>

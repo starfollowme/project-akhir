@@ -1,4 +1,4 @@
-
+// src/app/admin/layout.tsx
 'use client';
 
 import { useSession } from 'next-auth/react';
@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
 
-  
+  // Check authentication and authorization
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login');
@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [status, session, router]);
 
-  
+  // Show loading while checking auth
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -65,16 +65,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  
+  // Don't render if not authenticated or not admin
   if (!session || session.user.role !== 'ADMIN') {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-     
+      {/* Sidebar */}
       <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0">
-        
+        {/* Logo */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <Link
             href="/admin/dashboard"
@@ -87,7 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
         </div>
 
-        
+        {/* Navigation */}
         <nav className="mt-8 px-4">
           <ul className="space-y-2">
             {adminNavItems.map((item) => {
@@ -109,7 +109,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </ul>
         </nav>
 
-       
+        {/* Back to Store */}
         <div className="absolute bottom-4 left-4 right-4">
           <Link href="/">
             <Button
@@ -123,9 +123,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </div>
 
-      
+      {/* Main Content */}
       <div className="lg:pl-64">
-        
+        {/* Top Bar */}
         <div className="sticky top-0 z-40 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
           <div className="flex items-center">
             <button className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700">
@@ -139,7 +139,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
-        
+        {/* Page Content */}
         <main className="flex-1">{children}</main>
       </div>
     </div>

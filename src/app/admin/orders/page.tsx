@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -10,10 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  Search, 
-  Filter, 
-  Eye, 
+import {
+  Search,
+  Filter,
+  Eye,
   Calendar,
   DollarSign,
   Package,
@@ -70,8 +69,8 @@ export default function AdminOrdersPage() {
         setPagination(data.data.pagination)
       }
     } catch (error) {
-      console.error('Error fetching orders:', error)
-      toast.error('Failed to load orders')
+      console.error('Gagal mengambil pesanan:', error)
+      toast.error('Gagal memuat pesanan')
     } finally {
       setLoading(false)
     }
@@ -102,14 +101,14 @@ export default function AdminOrdersPage() {
       const data = await response.json()
 
       if (data.success) {
-        toast.success('Order status updated successfully')
+        toast.success('Status pesanan berhasil diperbarui')
         fetchOrders()
       } else {
-        toast.error(data.error || 'Failed to update order status')
+        toast.error(data.error || 'Gagal memperbarui status pesanan')
       }
     } catch (error) {
-      console.error('Error updating order status:', error)
-      toast.error('Failed to update order status')
+      console.error('Gagal memperbarui status pesanan:', error)
+      toast.error('Gagal memperbarui status pesanan')
     }
   }
 
@@ -131,7 +130,7 @@ export default function AdminOrdersPage() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -167,8 +166,8 @@ export default function AdminOrdersPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Orders Management</h1>
-          <p className="text-gray-600">View and manage customer orders</p>
+          <h1 className="text-2xl font-bold">Manajemen Pesanan</h1>
+          <p className="text-gray-600">Lihat dan kelola pesanan pelanggan</p>
         </div>
       </div>
 
@@ -180,28 +179,28 @@ export default function AdminOrdersPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   type="text"
-                  placeholder="Search by order number or customer..."
+                  placeholder="Cari berdasarkan nomor pesanan atau pelanggan..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
-              <Button type="submit">Search</Button>
+              <Button type="submit">Cari</Button>
             </form>
 
             <div className="flex gap-2 items-center">
               <Filter className="w-4 h-4 text-gray-400" />
               <Select value={statusFilter} onValueChange={handleStatusFilter}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="All Status" />
+                  <SelectValue placeholder="Semua Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="PROCESSING">Processing</SelectItem>
-                  <SelectItem value="SHIPPED">Shipped</SelectItem>
-                  <SelectItem value="DELIVERED">Delivered</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  <SelectItem value="ALL">Semua Status</SelectItem>
+                  <SelectItem value="PENDING">Tertunda</SelectItem>
+                  <SelectItem value="PROCESSING">Diproses</SelectItem>
+                  <SelectItem value="SHIPPED">Dikirim</SelectItem>
+                  <SelectItem value="DELIVERED">Terkirim</SelectItem>
+                  <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -212,7 +211,7 @@ export default function AdminOrdersPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            Orders ({pagination.total})
+            Pesanan ({pagination.total})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -222,12 +221,12 @@ export default function AdminOrdersPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left p-3">Order Details</th>
-                      <th className="text-left p-3">Customer</th>
-                      <th className="text-left p-3">Items</th>
-                      <th className="text-left p-3">Amount</th>
+                      <th className="text-left p-3">Detail Pesanan</th>
+                      <th className="text-left p-3">Pelanggan</th>
+                      <th className="text-left p-3">Barang</th>
+                      <th className="text-left p-3">Jumlah</th>
                       <th className="text-left p-3">Status</th>
-                      <th className="text-right p-3">Actions</th>
+                      <th className="text-right p-3">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -246,22 +245,22 @@ export default function AdminOrdersPage() {
                           <div className="flex items-center space-x-2">
                             <User className="w-4 h-4 text-gray-400" />
                             <div>
-                              <p className="font-medium">{(order as any).user?.name || 'N/A'}</p>
-                              <p className="text-sm text-gray-600">{(order as any).user?.email || 'N/A'}</p>
+                              <p className="font-medium">{(order as any).user?.name || 'T/A'}</p>
+                              <p className="text-sm text-gray-600">{(order as any).user?.email || 'T/A'}</p>
                             </div>
                           </div>
                         </td>
                         <td className="p-3">
                           <div className="flex items-center space-x-2">
                             <Package className="w-4 h-4 text-gray-400" />
-                            <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
+                            <span>{order.items.length} barang</span>
                           </div>
                         </td>
                         <td className="p-3">
                           <div className="flex items-center space-x-1">
                             <DollarSign className="w-4 h-4 text-gray-400" />
                             <span className="font-semibold">
-                              {Number(order.total).toFixed(2)}
+                              Rp{Number(order.total).toLocaleString('id-ID')}
                             </span>
                           </div>
                         </td>
@@ -276,11 +275,11 @@ export default function AdminOrdersPage() {
                               </Badge>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="PENDING">Pending</SelectItem>
-                              <SelectItem value="PROCESSING">Processing</SelectItem>
-                              <SelectItem value="SHIPPED">Shipped</SelectItem>
-                              <SelectItem value="DELIVERED">Delivered</SelectItem>
-                              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                              <SelectItem value="PENDING">Tertunda</SelectItem>
+                              <SelectItem value="PROCESSING">Diproses</SelectItem>
+                              <SelectItem value="SHIPPED">Dikirim</SelectItem>
+                              <SelectItem value="DELIVERED">Terkirim</SelectItem>
+                              <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
                             </SelectContent>
                           </Select>
                         </td>
@@ -306,7 +305,7 @@ export default function AdminOrdersPage() {
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
-                    Previous
+                    Sebelumnya
                   </Button>
                   {[...Array(pagination.totalPages)].map((_, i) => {
                     const page = i + 1
@@ -325,7 +324,7 @@ export default function AdminOrdersPage() {
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === pagination.totalPages}
                   >
-                    Next
+                    Berikutnya
                   </Button>
                 </div>
               )}
@@ -333,11 +332,11 @@ export default function AdminOrdersPage() {
           ) : (
             <div className="text-center py-12">
               <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No orders found</h3>
+              <h3 className="text-lg font-semibold mb-2">Tidak ada pesanan yang ditemukan</h3>
               <p className="text-gray-600">
-                {searchTerm || statusFilter 
-                  ? 'Try adjusting your search or filter criteria'
-                  : 'No orders have been placed yet'
+                {searchTerm || statusFilter !== 'ALL'
+                  ? 'Coba sesuaikan kriteria pencarian atau filter Anda'
+                  : 'Belum ada pesanan yang dibuat'
                 }
               </p>
             </div>

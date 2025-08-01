@@ -1,4 +1,4 @@
-
+// src/app/orders/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,7 +11,7 @@ import { Package, Calendar, DollarSign, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { OrderWithItems } from '@/types';
 
-
+// Mendefinisikan tipe untuk satu item dalam pesanan
 type OrderItemWithProduct = OrderWithItems['items'][number];
 
 export default function OrdersPage() {
@@ -26,7 +26,7 @@ export default function OrdersPage() {
     totalPages: 0,
   });
 
-
+  // Arahkan jika tidak terautentikasi
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login?callbackUrl=/orders');
@@ -51,9 +51,9 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.limit]); 
+  }, [pagination.limit]); // Tambahkan dependensi
 
-  
+  // Ambil data pesanan
   useEffect(() => {
     if (session) {
       fetchOrders();
@@ -106,13 +106,13 @@ export default function OrdersPage() {
   }
 
   if (!session) {
-    return null; 
+    return null; // Akan diarahkan
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-       
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Pesanan Saya</h1>
           <p className="text-gray-600">Lacak dan kelola riwayat pesanan Anda</p>
@@ -120,7 +120,7 @@ export default function OrdersPage() {
 
         {orders.length > 0 ? (
           <>
-           
+            {/* Daftar Pesanan */}
             <div className="space-y-6">
               {orders.map((order: OrderWithItems) => (
                 <Card
@@ -153,11 +153,11 @@ export default function OrdersPage() {
                   </CardHeader>
 
                   <CardContent className="p-6">
-                    
+                    {/* Item Pesanan */}
                     <div className="space-y-3">
                       {order.items.slice(0, 3).map((item: OrderItemWithProduct) => (
                         <div
-                          key={item.id} 
+                          key={item.id} // Menggunakan item.id sebagai key unik
                           className="flex items-center justify-between py-2"
                         >
                           <div className="flex-1">
@@ -179,7 +179,7 @@ export default function OrdersPage() {
                       )}
                     </div>
 
-                    
+                    {/* Aksi Pesanan */}
                     <div className="flex justify-between items-center pt-4 mt-4 border-t">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Package className="w-4 h-4" />
@@ -214,7 +214,7 @@ export default function OrdersPage() {
               ))}
             </div>
 
-           
+            {/* Paginasi */}
             {pagination.totalPages > 1 && (
               <div className="mt-8 flex justify-center gap-2">
                 <Button
@@ -249,7 +249,7 @@ export default function OrdersPage() {
             )}
           </>
         ) : (
-          
+          /* Kondisi Kosong */
           <div className="text-center py-12">
             <Package className="w-24 h-24 text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-semibold mb-2">Belum ada pesanan</h2>

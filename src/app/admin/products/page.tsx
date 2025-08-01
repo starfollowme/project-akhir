@@ -1,4 +1,3 @@
-// src/app/admin/products/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -30,6 +29,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState({
     page: 1,
@@ -53,26 +53,29 @@ export default function AdminProductsPage() {
     }
   }, [session, currentPage])
 
-  const fetchProducts = async (page = currentPage, search = searchTerm, category = selectedCategory) => {
+  const fetchProducts = async (page = currentPage, search = searchTerm, category = selectedCategory, status = statusFilter) => {
     try {
       setLoading(true)
       const params = new URLSearchParams({
         page: page.toString(),
         limit: pagination.limit.toString(),
         ...(search && { search }),
-        ...(category !== 'all' && { category })
+        ...(category !== 'all' && { category }),
+        ...(status !== 'all' && { status })
       })
 
-      const response = await fetch(`/api/products?${params}`)
+      const response = await fetch(`/api/admin/products?${params}`)
       const data = await response.json()
 
       if (data.success) {
         setProducts(data.data.products)
         setPagination(data.data.pagination)
+      } else {
+        toast.error(data.error || 'Gagal memuat produk')
       }
     } catch (error) {
-      console.error('Error fetching products:', error)
-      toast.error('Failed to load products')
+      console.error('Gagal mengambil produk:', error)
+      toast.error('Gagal memuat produk')
     } finally {
       setLoading(false)
     }
@@ -83,51 +86,64 @@ export default function AdminProductsPage() {
       const response = await fetch('/api/categories')
       const data = await response.json()
       
-      if (data.success) {
+      // Disesuaikan untuk menangani format API kategori yang baru
+      if (Array.isArray(data)) {
+        setCategories(data)
+      } else if (data.success) {
         setCategories(data.data)
       }
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Gagal mengambil kategori:', error)
     }
   }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setCurrentPage(1)
-    fetchProducts(1, searchTerm, selectedCategory)
+    fetchProducts(1, searchTerm, selectedCategory, statusFilter)
   }
 
-  const handleCategoryFilter = (category: string) => {
-    setSelectedCategory(category)
+  const handleFilterChange = (type: 'category' | 'status', value: string) => {
     setCurrentPage(1)
-    fetchProducts(1, searchTerm, category)
+    if (type === 'category') {
+      setSelectedCategory(value)
+      fetchProducts(1, searchTerm, value, statusFilter)
+    } else {
+      setStatusFilter(value)
+      fetchProducts(1, searchTerm, selectedCategory, value)
+    }
   }
 
   const handleDelete = async (productId: string, productName: string) => {
-    if (!confirm(`Are you sure you want to delete "${productName}"?`)) return
-
-    try {
-      const response = await fetch(`/api/products/${productId}`, {
-        method: 'DELETE'
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success('Product deleted successfully')
-        fetchProducts()
-      } else {
-        toast.error(data.error || 'Failed to delete product')
+    toast(`Apakah Anda yakin ingin menghapus "${productName}"?`, {
+      action: {
+        label: 'Hapus',
+        onClick: async () => {
+          try {
+            const response = await fetch(`/api/products/${productId}`, {
+              method: 'DELETE'
+            })
+            const data = await response.json()
+            if (data.success) {
+              toast.success('Produk berhasil dihapus')
+              fetchProducts()
+            } else {
+              throw new Error(data.error || 'Gagal menghapus produk')
+            }
+          } catch (error: any) {
+            console.error('Gagal menghapus produk:', error)
+            toast.error(error.message)
+          }
+        }
+      },
+      cancel: {
+        label: 'Batal'
       }
-    } catch (error) {
-      console.error('Error deleting product:', error)
-      toast.error('Failed to delete product')
-    }
+    })
   }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    fetchProducts(page, searchTerm, selectedCategory)
   }
 
   if (status === 'loading' || loading) {
@@ -152,13 +168,13 @@ export default function AdminProductsPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Products Management</h1>
-          <p className="text-gray-600">Manage your product catalog</p>
+          <h1 className="text-2xl font-bold">Manajemen Produk</h1>
+          <p className="text-gray-600">Kelola katalog produk Anda</p>
         </div>
         <Link href="/admin/products/create">
           <Button>
             <Plus className="w-4 h-4 mr-2" />
-            Add Product
+            Tambah Produk
           </Button>
         </Link>
       </div>
@@ -171,30 +187,44 @@ export default function AdminProductsPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Cari produk..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
-              <Button type="submit">Search</Button>
+              <Button type="submit">Cari</Button>
             </form>
 
-            <div className="flex gap-2 items-center">
-              <Filter className="w-4 h-4 text-gray-400" />
-              <Select value={selectedCategory} onValueChange={handleCategoryFilter}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.slug}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex gap-4 items-center">
+              <div className="flex gap-2 items-center">
+                <Filter className="w-4 h-4 text-gray-400" />
+                <Select value={selectedCategory} onValueChange={(v) => handleFilterChange('category', v)}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Semua Kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Kategori</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.slug}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 items-center">
+                <Select value={statusFilter} onValueChange={(v) => handleFilterChange('status', v)}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Semua Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="active">Aktif</SelectItem>
+                    <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -203,7 +233,7 @@ export default function AdminProductsPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            Products ({pagination.total})
+            Produk ({pagination.total})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -213,12 +243,12 @@ export default function AdminProductsPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left p-3">Product</th>
-                      <th className="text-left p-3">Category</th>
-                      <th className="text-left p-3">Price</th>
-                      <th className="text-left p-3">Stock</th>
+                      <th className="text-left p-3">Produk</th>
+                      <th className="text-left p-3">Kategori</th>
+                      <th className="text-left p-3">Harga</th>
+                      <th className="text-left p-3">Stok</th>
                       <th className="text-left p-3">Status</th>
-                      <th className="text-right p-3">Actions</th>
+                      <th className="text-right p-3">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -263,12 +293,12 @@ export default function AdminProductsPage() {
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-red-100 text-red-800'
                           }`}>
-                            {product.stock} units
+                            {product.stock} unit
                           </span>
                         </td>
                         <td className="p-3">
                           <Badge variant={product.isActive ? "default" : "secondary"}>
-                            {product.isActive ? 'Active' : 'Inactive'}
+                            {product.isActive ? 'Aktif' : 'Tidak Aktif'}
                           </Badge>
                         </td>
                         <td className="p-3">
@@ -306,7 +336,7 @@ export default function AdminProductsPage() {
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
-                    Previous
+                    Sebelumnya
                   </Button>
                   
                   {[...Array(pagination.totalPages)].map((_, i) => {
@@ -327,7 +357,7 @@ export default function AdminProductsPage() {
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === pagination.totalPages}
                   >
-                    Next
+                    Berikutnya
                   </Button>
                 </div>
               )}
@@ -335,17 +365,17 @@ export default function AdminProductsPage() {
           ) : (
             <div className="text-center py-12">
               <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No products found</h3>
+              <h3 className="text-lg font-semibold mb-2">Tidak ada produk yang ditemukan</h3>
               <p className="text-gray-600 mb-4">
-                {searchTerm || selectedCategory 
-                  ? 'Try adjusting your search or filter criteria'
-                  : 'Get started by adding your first product'
+                {searchTerm || selectedCategory !== 'all' || statusFilter !== 'all'
+                  ? 'Coba sesuaikan kriteria pencarian atau filter Anda'
+                  : 'Mulai dengan menambahkan produk pertama Anda'
                 }
               </p>
               <Link href="/admin/products/create">
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Product
+                  Tambah Produk
                 </Button>
               </Link>
             </div>

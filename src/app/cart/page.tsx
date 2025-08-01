@@ -1,3 +1,4 @@
+// src/app/cart/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,6 +13,7 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { CartWithItems } from '@/types';
 
+// Mendefinisikan tipe untuk satu item di keranjang agar lebih mudah dibaca
 type CartItemWithProduct = CartWithItems['items'][number];
 
 export default function CartPage() {
@@ -21,14 +23,14 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-  
+  // Arahkan jika tidak terautentikasi
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login?callbackUrl=/cart');
     }
   }, [status, router]);
 
- 
+  // Ambil data keranjang
   useEffect(() => {
     if (session) {
       fetchCart();
@@ -83,7 +85,8 @@ export default function CartPage() {
   };
 
   const clearCart = async () => {
-   
+    // Catatan: window.confirm tidak disarankan di beberapa lingkungan.
+    // Pertimbangkan untuk menggunakan komponen modal kustom.
     if (!confirm('Apakah Anda yakin ingin mengosongkan keranjang?')) return;
 
     try {
@@ -130,13 +133,13 @@ export default function CartPage() {
     }
   };
 
-  
+  // Hitung total
   const subtotal =
     cart?.items.reduce((sum: number, item: CartItemWithProduct) => {
       return sum + Number(item.product.price) * item.quantity;
     }, 0) || 0;
 
-  const shipping = subtotal > 100 ? 0 : 10; 
+  const shipping = subtotal > 100 ? 0 : 10; // Gratis ongkir di atas $100
   const total = subtotal + shipping;
 
   if (status === 'loading' || loading) {
@@ -158,13 +161,13 @@ export default function CartPage() {
   }
 
   if (!session) {
-    return null; 
+    return null; // Akan diarahkan
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-       
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Keranjang Belanja</h1>
           <Link href="/products">
@@ -177,7 +180,7 @@ export default function CartPage() {
 
         {cart && cart.items.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
+            {/* Item Keranjang */}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Item Keranjang ({cart.items.length})</h2>
@@ -195,7 +198,7 @@ export default function CartPage() {
                 <Card key={item.id}>
                   <CardContent className="p-6">
                     <div className="flex items-center space-x-4">
-                    
+                      {/* Gambar Produk */}
                       <div className="relative w-20 h-20 flex-shrink-0">
                         {item.product.imageUrl ? (
                           <Image
@@ -211,7 +214,7 @@ export default function CartPage() {
                         )}
                       </div>
 
-                      
+                      {/* Info Produk */}
                       <div className="flex-1 min-w-0">
                         <Link
                           href={`/products/${item.product.id}`}
@@ -223,7 +226,7 @@ export default function CartPage() {
                         <p className="text-xs text-gray-500">Stok: {item.product.stock}</p>
                       </div>
 
-                    
+                      {/* Kontrol Kuantitas */}
                       <div className="flex items-center space-x-2">
                         <Button
                           variant="outline"
@@ -258,6 +261,7 @@ export default function CartPage() {
                         </Button>
                       </div>
 
+                      {/* Total Item & Hapus */}
                       <div className="text-right">
                         <p className="text-lg font-semibold">${(Number(item.product.price) * item.quantity).toFixed(2)}</p>
                         <Button
@@ -316,7 +320,7 @@ export default function CartPage() {
             </div>
           </div>
         ) : (
-         
+          /* Keranjang Kosong */
           <div className="text-center py-12">
             <ShoppingBag className="w-24 h-24 text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-semibold mb-2">Keranjang Anda kosong</h2>

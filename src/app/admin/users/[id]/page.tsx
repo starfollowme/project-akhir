@@ -1,4 +1,3 @@
-// src/app/admin/users/[id]/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -9,9 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  ArrowLeft, 
-  User, 
+import {
+  ArrowLeft,
+  User,
   Mail,
   Calendar,
   Shield,
@@ -20,7 +19,6 @@ import {
   Package,
   Edit,
   Trash2,
-  MoreHorizontal,
   Eye
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -54,7 +52,6 @@ export default function AdminUserDetailPage() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
 
-  // Check if user is admin
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login')
@@ -63,7 +60,6 @@ export default function AdminUserDetailPage() {
     }
   }, [status, session, router])
 
-  // Fetch user details
   useEffect(() => {
     if (session?.user?.role === 'ADMIN' && userId) {
       fetchUserDetails()
@@ -78,12 +74,12 @@ export default function AdminUserDetailPage() {
       if (data.success) {
         setUser(data.data)
       } else {
-        toast.error('User not found')
+        toast.error('Pengguna tidak ditemukan')
         router.push('/admin/users')
       }
     } catch (error) {
-      console.error('Error fetching user:', error)
-      toast.error('Failed to load user details')
+      console.error('Gagal mengambil data pengguna:', error)
+      toast.error('Gagal memuat detail pengguna')
       router.push('/admin/users')
     } finally {
       setLoading(false)
@@ -92,7 +88,7 @@ export default function AdminUserDetailPage() {
 
   const updateUserRole = async (newRole: 'ADMIN' | 'CUSTOMER') => {
     if (userId === session?.user?.id) {
-      toast.error("You cannot change your own role")
+      toast.error("Anda tidak dapat mengubah peran Anda sendiri")
       return
     }
 
@@ -110,28 +106,25 @@ export default function AdminUserDetailPage() {
 
       if (data.success) {
         setUser(prev => prev ? { ...prev, role: newRole } : null)
-        toast.success('User role updated successfully')
+        toast.success('Peran pengguna berhasil diperbarui')
       } else {
-        toast.error(data.error || 'Failed to update user role')
+        toast.error(data.error || 'Gagal memperbarui peran pengguna')
       }
     } catch (error) {
-      console.error('Error updating user role:', error)
-      toast.error('Failed to update user role')
+      console.error('Gagal memperbarui peran pengguna:', error)
+      toast.error('Gagal memperbarui peran pengguna')
     } finally {
       setUpdating(false)
     }
   }
 
   const deactivateUser = async () => {
-    if (!confirm(`Are you sure you want to deactivate ${user?.name || user?.email}?`)) {
-      return
-    }
-
+    toast(`Menonaktifkan ${user?.name || user?.email}...`);
     try {
-      // In a real app, this would deactivate the user
-      toast.success('User deactivated successfully')
+      // Logika penonaktifan pengguna akan ada di sini
+      toast.success('Pengguna berhasil dinonaktifkan')
     } catch (error) {
-      toast.error('Failed to deactivate user')
+      toast.error('Gagal menonaktifkan pengguna')
     }
   }
 
@@ -164,7 +157,7 @@ export default function AdminUserDetailPage() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -196,18 +189,17 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Link href="/admin/users">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Users
+              Kembali ke Pengguna
             </Button>
           </Link>
           <div className="border-l h-6"></div>
           <div>
-            <h1 className="text-2xl font-bold">{user.name || 'Unnamed User'}</h1>
+            <h1 className="text-2xl font-bold">{user.name || 'Pengguna Tanpa Nama'}</h1>
             <p className="text-gray-600">{user.email}</p>
           </div>
         </div>
@@ -215,26 +207,24 @@ export default function AdminUserDetailPage() {
         <div className="flex gap-2">
           <Button variant="outline">
             <Mail className="w-4 h-4 mr-2" />
-            Send Email
+            Kirim Email
           </Button>
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             onClick={deactivateUser}
             disabled={userId === session.user.id}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Deactivate
+            Nonaktifkan
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* User Information */}
           <Card>
             <CardHeader>
-              <CardTitle>User Information</CardTitle>
+              <CardTitle>Informasi Pengguna</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -242,25 +232,25 @@ export default function AdminUserDetailPage() {
                   <div className="flex items-center gap-3">
                     <User className="w-5 h-5 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Full Name</p>
-                      <p className="font-medium">{user.name || 'Not provided'}</p>
+                      <p className="text-sm text-gray-600">Nama Lengkap</p>
+                      <p className="font-medium">{user.name || 'Tidak ada'}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3">
                     <Mail className="w-5 h-5 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Email Address</p>
+                      <p className="text-sm text-gray-600">Alamat Email</p>
                       <p className="font-medium">{user.email}</p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Role</p>
+                      <p className="text-sm text-gray-600">Peran</p>
                       <Select
                         value={user.role}
                         onValueChange={(value: 'ADMIN' | 'CUSTOMER') => updateUserRole(value)}
@@ -268,21 +258,21 @@ export default function AdminUserDetailPage() {
                       >
                         <SelectTrigger className="w-32">
                           <Badge className={getRoleColor(user.role)}>
-                            {user.role}
+                            {user.role === 'ADMIN' ? 'Admin' : 'Pelanggan'}
                           </Badge>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="CUSTOMER">Customer</SelectItem>
+                          <SelectItem value="CUSTOMER">Pelanggan</SelectItem>
                           <SelectItem value="ADMIN">Admin</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Member Since</p>
+                      <p className="text-sm text-gray-600">Anggota Sejak</p>
                       <p className="font-medium">{formatDate(user.createdAt)}</p>
                     </div>
                   </div>
@@ -291,14 +281,13 @@ export default function AdminUserDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Recent Orders */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Recent Orders</CardTitle>
+                <CardTitle>Pesanan Terbaru</CardTitle>
                 <Link href={`/admin/orders?user=${user.id}`}>
                   <Button variant="outline" size="sm">
-                    View All Orders
+                    Lihat Semua Pesanan
                   </Button>
                 </Link>
               </div>
@@ -319,10 +308,10 @@ export default function AdminUserDetailPage() {
                           {order.status}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <p className="font-medium">${Number(order.total).toFixed(2)}</p>
+                          <p className="font-medium">Rp{Number(order.total).toLocaleString('id-ID')}</p>
                         </div>
                         <Link href={`/admin/orders/${order.id}`}>
                           <Button variant="ghost" size="sm">
@@ -336,70 +325,67 @@ export default function AdminUserDetailPage() {
               ) : (
                 <div className="text-center py-8">
                   <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No orders found</p>
+                  <p className="text-gray-500">Tidak ada pesanan</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* User Stats */}
           <Card>
             <CardHeader>
-              <CardTitle>User Statistics</CardTitle>
+              <CardTitle>Statistik Pengguna</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">Total Orders</span>
+                  <span className="text-sm">Total Pesanan</span>
                 </div>
                 <span className="font-semibold">{user._count.orders}</span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">Total Spent</span>
+                  <span className="text-sm">Total Belanja</span>
                 </div>
-                <span className="font-semibold">${calculateTotalSpent().toFixed(2)}</span>
+                <span className="font-semibold">Rp{calculateTotalSpent().toLocaleString('id-ID')}</span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">Last Order</span>
+                  <span className="text-sm">Pesanan Terakhir</span>
                 </div>
                 <span className="font-semibold">
-                  {user.orders && user.orders.length > 0 
-                    ? new Date(user.orders[0].createdAt).toLocaleDateString()
-                    : 'Never'
+                  {user.orders && user.orders.length > 0
+                    ? new Date(user.orders[0].createdAt).toLocaleDateString('id-ID')
+                    : 'Tidak Pernah'
                   }
                 </span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Account Status */}
           <Card>
             <CardHeader>
-              <CardTitle>Account Status</CardTitle>
+              <CardTitle>Status Akun</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm">Status</span>
-                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                <Badge className="bg-green-100 text-green-800">Aktif</Badge>
               </div>
-              
+
               <div className="flex items-center justify-between">
-                <span className="text-sm">Email Verified</span>
-                <Badge className="bg-green-100 text-green-800">Yes</Badge>
+                <span className="text-sm">Email Terverifikasi</span>
+                <Badge className="bg-green-100 text-green-800">Ya</Badge>
               </div>
-              
+
               <div className="flex items-center justify-between">
-                <span className="text-sm">Last Login</span>
+                <span className="text-sm">Login Terakhir</span>
                 <span className="text-sm text-gray-600">
                   {formatDate(user.updatedAt)}
                 </span>
@@ -407,35 +393,34 @@ export default function AdminUserDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Aksi Cepat</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Button variant="outline" className="w-full">
                 <Mail className="w-4 h-4 mr-2" />
-                Send Email
+                Kirim Email
               </Button>
-              
+
               <Button variant="outline" className="w-full">
                 <Edit className="w-4 h-4 mr-2" />
-                Edit User
+                Edit Pengguna
               </Button>
-              
+
               <Button variant="outline" className="w-full">
                 <Package className="w-4 h-4 mr-2" />
-                View Orders
+                Lihat Pesanan
               </Button>
-              
-              <Button 
-                variant="destructive" 
+
+              <Button
+                variant="destructive"
                 className="w-full"
                 onClick={deactivateUser}
                 disabled={userId === session.user.id}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Deactivate Account
+                Nonaktifkan Akun
               </Button>
             </CardContent>
           </Card>

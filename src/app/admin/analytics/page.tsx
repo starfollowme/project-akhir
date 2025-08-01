@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -49,7 +48,6 @@ export default function AdminAnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('30d')
 
- 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login')
@@ -58,7 +56,6 @@ export default function AdminAnalyticsPage() {
     }
   }, [status, session, router])
 
-  
   useEffect(() => {
     if (session?.user?.role === 'ADMIN') {
       fetchAnalytics()
@@ -75,7 +72,7 @@ export default function AdminAnalyticsPage() {
         setAnalytics(data.data)
       }
     } catch (error) {
-      console.error('Error fetching analytics:', error)
+      console.error('Gagal mengambil data analitik:', error)
     } finally {
       setLoading(false)
     }
@@ -126,11 +123,10 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div className="p-6">
-      
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-          <p className="text-gray-600">Track your business performance</p>
+          <h1 className="text-2xl font-bold">Dasbor Analitik</h1>
+          <p className="text-gray-600">Lacak performa bisnis Anda</p>
         </div>
         
         <Select value={timeRange} onValueChange={setTimeRange}>
@@ -138,19 +134,18 @@ export default function AdminAnalyticsPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="7d">Last 7 days</SelectItem>
-            <SelectItem value="30d">Last 30 days</SelectItem>
-            <SelectItem value="90d">Last 90 days</SelectItem>
-            <SelectItem value="1y">Last year</SelectItem>
+            <SelectItem value="7d">7 hari terakhir</SelectItem>
+            <SelectItem value="30d">30 hari terakhir</SelectItem>
+            <SelectItem value="90d">90 hari terakhir</SelectItem>
+            <SelectItem value="1y">1 tahun terakhir</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pendapatan</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -163,12 +158,12 @@ export default function AdminAnalyticsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pesanan</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {analytics.totalOrders.toLocaleString()}
+              {analytics.totalOrders.toLocaleString('id-ID')}
             </div>
             {formatGrowth(analytics.ordersGrowth)}
           </CardContent>
@@ -176,7 +171,7 @@ export default function AdminAnalyticsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
+            <CardTitle className="text-sm font-medium">Nilai Pesanan Rata-rata</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -184,32 +179,31 @@ export default function AdminAnalyticsPage() {
               {formatCurrency(analytics.averageOrderValue)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Per order average
+              Rata-rata per pesanan
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pelanggan</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {analytics.totalCustomers.toLocaleString()}
+              {analytics.totalCustomers.toLocaleString('id-ID')}
             </div>
             <p className="text-xs text-muted-foreground">
-              Registered users
+              Pengguna terdaftar
             </p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-       
         <Card>
           <CardHeader>
-            <CardTitle>Top Selling Products</CardTitle>
+            <CardTitle>Produk Terlaris</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -223,7 +217,7 @@ export default function AdminAnalyticsPage() {
                       <div>
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-gray-600">
-                          {product.sales} sold
+                          {product.sales} terjual
                         </p>
                       </div>
                     </div>
@@ -235,16 +229,15 @@ export default function AdminAnalyticsPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No sales data available</p>
+                <p className="text-gray-500 text-center py-4">Tidak ada data penjualan</p>
               )}
             </div>
           </CardContent>
         </Card>
 
-       
         <Card>
           <CardHeader>
-            <CardTitle>Orders by Status</CardTitle>
+            <CardTitle>Pesanan Berdasarkan Status</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -287,10 +280,9 @@ export default function AdminAnalyticsPage() {
           </CardContent>
         </Card>
 
-       
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Monthly Sales Overview</CardTitle>
+            <CardTitle>Tinjauan Penjualan Bulanan</CardTitle>
           </CardHeader>
           <CardContent>
             {analytics.salesByMonth.length > 0 ? (
@@ -307,7 +299,7 @@ export default function AdminAnalyticsPage() {
                           {formatCurrency(month.revenue)}
                         </p>
                         <p className="text-sm text-gray-600">
-                          {month.orders} orders
+                          {month.orders} pesanan
                         </p>
                       </div>
                     </div>
@@ -315,8 +307,8 @@ export default function AdminAnalyticsPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">No monthly data available</p>
-            )}
+              <p className="text-gray-500 text-center py-8">Tidak ada data bulanan</p>
+            )} 
           </CardContent>
         </Card>
       </div>

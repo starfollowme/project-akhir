@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  Search, 
-  Filter, 
-  Eye, 
+import {
+  Search,
+  Filter,
+  Eye,
   Calendar,
   Mail,
   User,
@@ -49,7 +49,7 @@ export default function AdminUsersPage() {
 
   const fetchUsers = useCallback(async (page: number, search: string, role: string) => {
     if (session?.user?.role !== 'ADMIN') return
-    
+
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -63,14 +63,14 @@ export default function AdminUsersPage() {
       const data = await response.json()
 
       if (data.success) {
-        setUsers(data.data.users.map((u: any) => ({...u, createdAt: new Date(u.createdAt)})))
+        setUsers(data.data.users.map((u: any) => ({ ...u, createdAt: new Date(u.createdAt) })))
         setPagination(data.data.pagination)
       } else {
-        toast.error(data.error || 'Failed to load users');
+        toast.error(data.error || 'Gagal memuat pengguna');
       }
     } catch (error) {
-      console.error('Error fetching users:', error)
-      toast.error('Failed to load users')
+      console.error('Gagal mengambil data pengguna:', error)
+      toast.error('Gagal memuat pengguna')
     } finally {
       setLoading(false)
     }
@@ -94,7 +94,7 @@ export default function AdminUsersPage() {
     e.preventDefault()
     setCurrentPage(1)
   }
-  
+
   const handleRoleChange = (role: string) => {
     setRoleFilter(role)
     setCurrentPage(1)
@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
 
   const updateUserRole = async (userId: string, newRole: 'ADMIN' | 'CUSTOMER') => {
     if (userId === session?.user?.id) {
-      toast.error("You cannot change your own role.")
+      toast.error("Anda tidak dapat mengubah peran Anda sendiri.")
       return
     }
 
@@ -119,19 +119,19 @@ export default function AdminUsersPage() {
       })
       const result = await response.json()
       if (!response.ok) {
-        throw new Error(result.details || result.error || 'Failed to update role');
+        throw new Error(result.details || result.error || 'Gagal memperbarui peran');
       }
-      toast.success('User role updated successfully.')
+      toast.success('Peran pengguna berhasil diperbarui.')
     } catch (error: any) {
-      console.error('Error updating user role:', error)
-      toast.error(`Update failed: ${error.message}`)
+      console.error('Gagal memperbarui peran pengguna:', error)
+      toast.error(`Pembaruan gagal: ${error.message}`)
       setUsers(originalUsers);
     }
   }
 
   const deleteUser = async (userToDelete: User) => {
     if (userToDelete.id === session?.user?.id) {
-      toast.error("You cannot delete your own account.")
+      toast.error("Anda tidak dapat menghapus akun Anda sendiri.")
       return
     }
 
@@ -145,18 +145,18 @@ export default function AdminUsersPage() {
 
       if (!response.ok) {
         const result = await response.json()
-        throw new Error(result.error || 'Failed to delete user')
+        throw new Error(result.error || 'Gagal menghapus pengguna')
       }
-      
-      toast.success(`User ${userToDelete.name || userToDelete.email} has been deleted.`)
+
+      toast.success(`Pengguna ${userToDelete.name || userToDelete.email} telah dihapus.`)
       fetchUsers(currentPage, searchTerm, roleFilter)
     } catch (error: any) {
-      console.error('Error deleting user:', error)
-      toast.error(`Delete failed: ${error.message}`)
+      console.error('Gagal menghapus pengguna:', error)
+      toast.error(`Penghapusan gagal: ${error.message}`)
       setUsers(originalUsers)
     }
   }
-  
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'ADMIN': return 'bg-purple-100 text-purple-800 hover:bg-purple-200'
@@ -166,11 +166,11 @@ export default function AdminUsersPage() {
   }
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('id-ID', {
       year: 'numeric', month: 'short', day: 'numeric'
     })
   }
-  
+
   const handlePageChange = (page: number) => {
     if (page > 0 && page <= pagination.totalPages) {
       setCurrentPage(page)
@@ -195,18 +195,18 @@ export default function AdminUsersPage() {
       if (page < totalPages - 3) pages.push('...')
       pages.push(totalPages)
     }
-    
+
     return pages.map((p, index) =>
-        typeof p === 'number' ? (
-          <Button key={index} variant={currentPage === p ? 'default' : 'outline'} size="icon" onClick={() => handlePageChange(p)}>
-            {p}
-          </Button>
-        ) : (
-          <span key={index} className="flex items-center justify-center w-9 h-9">
-            {p}
-          </span>
-        )
+      typeof p === 'number' ? (
+        <Button key={index} variant={currentPage === p ? 'default' : 'outline'} size="icon" onClick={() => handlePageChange(p)}>
+          {p}
+        </Button>
+      ) : (
+        <span key={index} className="flex items-center justify-center w-9 h-9">
+          {p}
+        </span>
       )
+    )
   }
 
   if (status === 'loading' || (loading && users.length === 0)) {
@@ -231,8 +231,8 @@ export default function AdminUsersPage() {
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Users Management</h1>
-          <p className="text-gray-600">View, manage, and search for system users.</p>
+          <h1 className="text-2xl font-bold text-gray-800">Manajemen Pengguna</h1>
+          <p className="text-gray-600">Lihat, kelola, dan cari pengguna sistem.</p>
         </div>
       </div>
 
@@ -244,25 +244,25 @@ export default function AdminUsersPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   type="text"
-                  placeholder="Search by name or email..."
+                  placeholder="Cari berdasarkan nama atau email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
-              <Button type="submit">Search</Button>
+              <Button type="submit">Cari</Button>
             </form>
 
             <div className="flex gap-2 items-center">
               <Filter className="w-4 h-4 text-gray-400" />
               <Select value={roleFilter} onValueChange={handleRoleChange}>
                 <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="All Roles" />
+                  <SelectValue placeholder="Semua Peran" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Roles</SelectItem>
+                  <SelectItem value="ALL">Semua Peran</SelectItem>
                   <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="CUSTOMER">Customer</SelectItem>
+                  <SelectItem value="CUSTOMER">Pelanggan</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -273,7 +273,7 @@ export default function AdminUsersPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            Users ({pagination.total})
+            Pengguna ({pagination.total})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -283,11 +283,11 @@ export default function AdminUsersPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left p-3 font-semibold text-gray-600">User</th>
-                      <th className="text-left p-3 font-semibold text-gray-600">Role</th>
-                      <th className="text-left p-3 font-semibold text-gray-600">Orders</th>
-                      <th className="text-left p-3 font-semibold text-gray-600">Joined</th>
-                      <th className="text-right p-3 font-semibold text-gray-600">Actions</th>
+                      <th className="text-left p-3 font-semibold text-gray-600">Pengguna</th>
+                      <th className="text-left p-3 font-semibold text-gray-600">Peran</th>
+                      <th className="text-left p-3 font-semibold text-gray-600">Pesanan</th>
+                      <th className="text-left p-3 font-semibold text-gray-600">Bergabung</th>
+                      <th className="text-right p-3 font-semibold text-gray-600">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -299,7 +299,7 @@ export default function AdminUsersPage() {
                               <User className="w-5 h-5 text-gray-400" />
                             </div>
                             <div>
-                              <p className="font-medium">{user.name || 'No Name'}</p>
+                              <p className="font-medium">{user.name || 'Tanpa Nama'}</p>
                               <div className="flex items-center text-sm text-gray-600">
                                 <Mail className="w-3 h-3 mr-1.5" />
                                 {user.email}
@@ -324,13 +324,13 @@ export default function AdminUsersPage() {
                                 <div className="flex items-center"><Shield className="w-4 h-4 mr-2" /> Admin</div>
                               </SelectItem>
                               <SelectItem value="CUSTOMER">
-                                <div className="flex items-center"><User className="w-4 h-4 mr-2" /> Customer</div>
+                                <div className="flex items-center"><User className="w-4 h-4 mr-2" /> Pelanggan</div>
                               </SelectItem>
                             </SelectContent>
                           </Select>
                         </td>
                         <td className="p-3">
-                          <span className="text-sm text-gray-700">{user._count?.orders || 0} orders</span>
+                          <span className="text-sm text-gray-700">{user._count?.orders || 0} pesanan</span>
                         </td>
                         <td className="p-3">
                           <div className="flex items-center text-sm text-gray-600">
@@ -357,11 +357,11 @@ export default function AdminUsersPage() {
               {pagination.totalPages > 1 && (
                 <div className="mt-6 flex justify-center items-center gap-2 flex-wrap">
                   <Button variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                    Previous
+                    Sebelumnya
                   </Button>
                   {renderPagination()}
                   <Button variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === pagination.totalPages}>
-                    Next
+                    Berikutnya
                   </Button>
                 </div>
               )}
@@ -369,11 +369,11 @@ export default function AdminUsersPage() {
           ) : (
             <div className="text-center py-16">
               <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2 text-gray-700">No Users Found</h3>
+              <h3 className="text-xl font-semibold mb-2 text-gray-700">Tidak Ada Pengguna yang Ditemukan</h3>
               <p className="text-gray-500">
                 {searchTerm || (roleFilter && roleFilter !== 'ALL')
-                  ? 'Try adjusting your search or filter criteria.'
-                  : 'There are no users in the system yet.'
+                  ? 'Coba sesuaikan kriteria pencarian atau filter Anda.'
+                  : 'Belum ada pengguna di sistem.'
                 }
               </p>
             </div>
