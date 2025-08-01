@@ -201,8 +201,7 @@ export default function EditProductPage() {
             }
         },
         cancel: {
-            label: 'Batal',
-            onClick: () => {} // PERBAIKAN: Menambahkan onClick kosong
+            label: 'Batal'
         }
     })
   }

@@ -142,11 +142,7 @@ export default function OrderReviewPage() {
             submitted: true
           }
         }))
-        setExistingReviews(prev => {
-          const newSet = new Set(prev)
-          newSet.add(productId)
-          return newSet
-        })
+        setExistingReviews(prev => new Set([...prev, productId]))
       } else {
         toast.error(data.error || 'Gagal mengirim ulasan')
       }
@@ -158,7 +154,7 @@ export default function OrderReviewPage() {
     }
   }
 
-  const formatDate = (dateString: string | Date) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',

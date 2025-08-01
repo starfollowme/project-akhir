@@ -86,6 +86,7 @@ export default function AdminProductsPage() {
       const response = await fetch('/api/categories')
       const data = await response.json()
       
+      // Disesuaikan untuk menangani format API kategori yang baru
       if (Array.isArray(data)) {
         setCategories(data)
       } else if (data.success) {
@@ -136,8 +137,7 @@ export default function AdminProductsPage() {
         }
       },
       cancel: {
-        label: 'Batal',
-        onClick: () => {} // PERBAIKAN: Menambahkan onClick kosong
+        label: 'Batal'
       }
     })
   }

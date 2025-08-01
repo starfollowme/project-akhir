@@ -129,8 +129,7 @@ export default function AdminOrdersPage() {
     }
   }
 
-  // PERBAIKAN: Mengizinkan input berupa string atau Date
-  const formatDate = (dateString: string | Date) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'short',
@@ -261,7 +260,7 @@ export default function AdminOrdersPage() {
                           <div className="flex items-center space-x-1">
                             <DollarSign className="w-4 h-4 text-gray-400" />
                             <span className="font-semibold">
-                              ${Number(order.total).toFixed(2)}
+                              Rp{Number(order.total).toLocaleString('id-ID')}
                             </span>
                           </div>
                         </td>

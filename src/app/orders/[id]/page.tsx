@@ -67,33 +67,32 @@ export default function OrderDetailPage() {
 
   const handleCancelOrder = async () => {
     toast('Apakah Anda yakin ingin membatalkan pesanan ini?', {
-      description: 'Tindakan ini tidak dapat diurungkan.',
-      action: {
-        label: 'Batalkan Pesanan',
-        onClick: async () => {
-          setIsCancelling(true);
-          try {
-            const response = await fetch(`/api/orders/${orderId}`, {
-              method: 'DELETE',
-            });
-            const result = await response.json();
-            if (!response.ok) {
-              throw new Error(result.details || result.error || 'Gagal membatalkan pesanan');
+        description: 'Tindakan ini tidak dapat diurungkan.',
+        action: {
+            label: 'Batalkan Pesanan',
+            onClick: async () => {
+                setIsCancelling(true);
+                try {
+                    const response = await fetch(`/api/orders/${orderId}`, {
+                        method: 'DELETE',
+                    });
+                    const result = await response.json();
+                    if (!response.ok) {
+                        throw new Error(result.details || result.error || 'Gagal membatalkan pesanan');
+                    }
+                    toast.success('Pesanan berhasil dibatalkan');
+                    fetchOrderDetails(); // Muat ulang detail pesanan
+                } catch (error: any) {
+                    console.error('Gagal membatalkan pesanan:', error);
+                    toast.error(error.message);
+                } finally {
+                    setIsCancelling(false);
+                }
             }
-            toast.success('Pesanan berhasil dibatalkan');
-            fetchOrderDetails(); // Muat ulang detail pesanan
-          } catch (error: any) {
-            console.error('Gagal membatalkan pesanan:', error);
-            toast.error(error.message);
-          } finally {
-            setIsCancelling(false);
-          }
+        },
+        cancel: {
+            label: 'Tidak'
         }
-      },
-      cancel: {
-        label: 'Tidak',
-        onClick: () => {} // <-- FIX: Added empty onClick handler
-      }
     });
   }
 
