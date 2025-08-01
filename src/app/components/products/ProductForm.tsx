@@ -48,18 +48,17 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
     try {
       const response = await fetch('/api/categories')
       const data = await response.json()
-      
-      // Tangani jika API tidak punya field success
+
       if (Array.isArray(data)) {
         setCategories(data)
       } else if (data.success && Array.isArray(data.data)) {
         setCategories(data.data)
       } else {
-        throw new Error('Invalid category data format')
+        throw new Error('Format data kategori tidak valid')
       }
     } catch (error) {
-      console.error('Error fetching categories:', error)
-      toast.error('Failed to load categories')
+      console.error('Gagal mengambil kategori:', error)
+      toast.error('Gagal memuat kategori')
     }
   }
 
@@ -68,7 +67,7 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
       ...prev,
       [field]: value
     }))
-    
+
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -81,23 +80,23 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
     const newErrors: Partial<ProductFormData> = {}
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Product name is required'
+      newErrors.name = 'Nama produk wajib diisi'
     }
 
     if (formData.price <= 0) {
-      newErrors.price = 'Price must be greater than 0'
+      newErrors.price = 'Harga harus lebih dari 0'
     }
 
     if (formData.stock < 0) {
-      newErrors.stock = 'Stock cannot be negative'
+      newErrors.stock = 'Stok tidak boleh negatif'
     }
 
     if (!formData.categoryId) {
-      newErrors.categoryId = 'Category is required'
+      newErrors.categoryId = 'Kategori wajib diisi'
     }
 
     if (formData.imageUrl && !isValidUrl(formData.imageUrl)) {
-      newErrors.imageUrl = 'Please enter a valid image URL'
+      newErrors.imageUrl = 'Harap masukkan URL gambar yang valid'
     }
 
     setErrors(newErrors)
@@ -115,7 +114,7 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
@@ -123,7 +122,7 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
     try {
       await onSubmit(formData)
     } catch (error) {
-      console.error('Form submission error:', error)
+      console.error('Kesalahan pengiriman formulir:', error)
     }
   }
 
@@ -132,20 +131,19 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
       <Card>
         <CardHeader>
           <CardTitle>
-            {product ? 'Edit Product' : 'Create New Product'}
+            {product ? 'Ubah Produk' : 'Buat Produk Baru'}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
 
-          {/* Product Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">Product Name *</Label>
+            <Label htmlFor="name">Nama Produk *</Label>
             <Input
               id="name"
               type="text"
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
-              placeholder="Enter product name"
+              placeholder="Masukkan nama produk"
               className={errors.name ? 'border-red-500' : ''}
             />
             {errors.name && (
@@ -153,40 +151,38 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
             )}
           </div>
 
-          {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Deskripsi</Label>
             <textarea
               id="description"
               rows={4}
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Enter product description"
+              placeholder="Masukkan deskripsi produk"
               className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none"
             />
           </div>
 
-          {/* Price and Stock */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price">Price ($) *</Label>
+              <Label htmlFor="price">Harga (Rp) *</Label>
               <Input
                 id="price"
                 type="number"
-                step="0.01"
+                step="1"
                 min="0"
                 value={formData.price || ''}
                 onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
+                placeholder="0"
                 className={errors.price ? 'border-red-500' : ''}
               />
               {errors.price && (
                 <p className="text-sm text-red-600">{errors.price}</p>
               )}
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="stock">Stock Quantity *</Label>
+              <Label htmlFor="stock">Jumlah Stok *</Label>
               <Input
                 id="stock"
                 type="number"
@@ -202,15 +198,14 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
             </div>
           </div>
 
-          {/* Category */}
           <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
-            <Select 
-              value={formData.categoryId} 
+            <Label htmlFor="category">Kategori *</Label>
+            <Select
+              value={formData.categoryId}
               onValueChange={(value) => handleChange('categoryId', value)}
             >
               <SelectTrigger className={errors.categoryId ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Select a category" />
+                <SelectValue placeholder="Pilih kategori" />
               </SelectTrigger>
               <SelectContent>
                 {categories.length > 0 ? (
@@ -220,7 +215,7 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
                     </SelectItem>
                   ))
                 ) : (
-                  <div className="p-2 text-sm text-gray-500">No categories available</div>
+                  <div className="p-2 text-sm text-gray-500">Tidak ada kategori yang tersedia</div>
                 )}
               </SelectContent>
             </Select>
@@ -229,39 +224,37 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
             )}
           </div>
 
-          {/* Image URL */}
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
+            <Label htmlFor="imageUrl">URL Gambar</Label>
             <Input
               id="imageUrl"
               type="url"
               value={formData.imageUrl}
               onChange={(e) => handleChange('imageUrl', e.target.value)}
-              placeholder="https://example.com/image.jpg"
+              placeholder="https://contoh.com/gambar.jpg"
               className={errors.imageUrl ? 'border-red-500' : ''}
             />
             {errors.imageUrl && (
               <p className="text-sm text-red-600">{errors.imageUrl}</p>
             )}
             <p className="text-sm text-gray-600">
-              Enter a direct URL to the product image. Leave empty if no image is available.
+              Masukkan URL langsung ke gambar produk. Kosongkan jika tidak ada gambar.
             </p>
           </div>
 
-          {/* Image Preview */}
           {formData.imageUrl && !errors.imageUrl && (
             <div className="space-y-2">
-              <Label>Image Preview</Label>
+              <Label>Pratinjau Gambar</Label>
               <div className="border rounded-lg p-4">
                 <img
                   src={formData.imageUrl}
-                  alt="Product preview"
+                  alt="Pratinjau produk"
                   className="max-w-full h-48 object-cover rounded-lg mx-auto"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                     setErrors(prev => ({
                       ...prev,
-                      imageUrl: 'Invalid image URL'
+                      imageUrl: 'URL gambar tidak valid'
                     }))
                   }}
                 />
@@ -269,20 +262,19 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
             </div>
           )}
 
-          {/* Status (only in edit) */}
           {product && (
             <div className="space-y-2">
               <Label htmlFor="isActive">Status</Label>
-              <Select 
-                value={formData.isActive?.toString()} 
+              <Select
+                value={formData.isActive?.toString()}
                 onValueChange={(value) => handleChange('isActive', value === 'true')}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="true">Active</SelectItem>
-                  <SelectItem value="false">Inactive</SelectItem>
+                  <SelectItem value="true">Aktif</SelectItem>
+                  <SelectItem value="false">Tidak Aktif</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -290,29 +282,28 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
         </CardContent>
       </Card>
 
-      {/* Form Buttons */}
       <div className="flex gap-4">
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={isLoading}
           className="flex-1"
         >
           {isLoading ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              {product ? 'Updating...' : 'Creating...'}
+              {product ? 'Memperbarui...' : 'Membuat...'}
             </>
           ) : (
             <>
               <Save className="w-4 h-4 mr-2" />
-              {product ? 'Update Product' : 'Create Product'}
+              {product ? 'Perbarui Produk' : 'Buat Produk'}
             </>
           )}
         </Button>
-        
+
         <Button type="button" variant="outline" onClick={onCancel}>
           <X className="w-4 h-4 mr-2" />
-          Cancel
+          Batal
         </Button>
       </div>
     </form>
