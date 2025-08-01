@@ -1,4 +1,3 @@
-// src/app/orders/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -77,8 +76,8 @@ export default function OrdersPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', { // Menggunakan format lokal Indonesia
+  const formatDate = (date: string | Date) => {
+    return new Date(date).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -157,7 +156,7 @@ export default function OrdersPage() {
                     <div className="space-y-3">
                       {order.items.slice(0, 3).map((item: OrderItemWithProduct) => (
                         <div
-                          key={item.id} // Menggunakan item.id sebagai key unik
+                          key={item.id}
                           className="flex items-center justify-between py-2"
                         >
                           <div className="flex-1">
