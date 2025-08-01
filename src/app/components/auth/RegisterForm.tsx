@@ -50,7 +50,7 @@ export function RegisterForm({ className }: RegisterFormProps) {
     { regex: /\d/, text: 'Satu angka' }
   ]
 
-  const isPasswordValid = passwordRequirements.every(req =>
+  const isPasswordValid = passwordRequirements.every(req => 
     req.regex.test(formData.password)
   )
 
@@ -59,7 +59,7 @@ export function RegisterForm({ className }: RegisterFormProps) {
       ...prev,
       [field]: value
     }))
-
+    
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -74,13 +74,13 @@ export function RegisterForm({ className }: RegisterFormProps) {
     if (!formData.name.trim()) {
       newErrors.name = 'Nama lengkap wajib diisi'
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Nama harus terdiri dari minimal 2 karakter'
+      newErrors.name = 'Nama minimal 2 karakter'
     }
 
     if (!formData.email) {
       newErrors.email = 'Email wajib diisi'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Silakan masukkan alamat email yang valid'
+      newErrors.email = 'Harap masukkan alamat email yang valid'
     }
 
     if (!formData.password) {
@@ -101,7 +101,7 @@ export function RegisterForm({ className }: RegisterFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    
     if (!validateForm()) {
       return
     }
@@ -128,7 +128,7 @@ export function RegisterForm({ className }: RegisterFormProps) {
         toast.success('Akun berhasil dibuat! Silakan masuk.')
         router.push('/auth/login')
       } else {
-        if (response.status === 400 && data.error.includes('sudah ada')) {
+        if (response.status === 400 && data.error.includes('already exists')) {
           setErrors({ email: 'Akun dengan email ini sudah ada' })
         } else {
           setErrors({ general: data.error || 'Pendaftaran gagal' })
@@ -149,10 +149,10 @@ export function RegisterForm({ className }: RegisterFormProps) {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">Buat Akun</CardTitle>
         <CardDescription>
-          Masukkan informasi Anda untuk membuat akun Anda
+          Masukkan informasi Anda untuk membuat akun
         </CardDescription>
       </CardHeader>
-
+      
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {errors.general && (
@@ -234,16 +234,17 @@ export function RegisterForm({ className }: RegisterFormProps) {
             {errors.password && (
               <p className="text-sm text-red-600">{errors.password}</p>
             )}
-
+            
             {formData.password && (
               <div className="mt-2 space-y-1">
                 {passwordRequirements.map((req, index) => {
                   const isMet = req.regex.test(formData.password)
                   return (
-                    <div
-                      key={index}
-                      className={`flex items-center text-xs ${isMet ? 'text-green-600' : 'text-gray-500'
-                        }`}
+                    <div 
+                      key={index} 
+                      className={`flex items-center text-xs ${
+                        isMet ? 'text-green-600' : 'text-gray-500'
+                      }`}
                     >
                       {isMet ? (
                         <Check className="h-3 w-3 mr-1" />
@@ -289,12 +290,13 @@ export function RegisterForm({ className }: RegisterFormProps) {
             {errors.confirmPassword && (
               <p className="text-sm text-red-600">{errors.confirmPassword}</p>
             )}
-
+            
             {formData.confirmPassword && (
-              <div className={`flex items-center text-xs ${formData.password === formData.confirmPassword
-                  ? 'text-green-600'
+              <div className={`flex items-center text-xs ${
+                formData.password === formData.confirmPassword
+                  ? 'text-green-600' 
                   : 'text-red-600'
-                }`}>
+              }`}>
                 {formData.password === formData.confirmPassword ? (
                   <>
                     <Check className="h-3 w-3 mr-1" />
@@ -335,9 +337,9 @@ export function RegisterForm({ className }: RegisterFormProps) {
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-4">
-          <Button
-            type="submit"
-            className="w-full"
+          <Button 
+            type="submit" 
+            className="w-full" 
             disabled={isLoading || !isPasswordValid || formData.password !== formData.confirmPassword}
           >
             {isLoading ? (
@@ -349,7 +351,7 @@ export function RegisterForm({ className }: RegisterFormProps) {
               'Buat Akun'
             )}
           </Button>
-
+          
           <p className="text-center text-sm text-gray-600">
             Sudah punya akun?{' '}
             <Link href="/auth/login" className="font-medium text-primary hover:underline">

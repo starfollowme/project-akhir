@@ -9,10 +9,10 @@ export function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <Package className="h-6 w-6" />
-              <span className="text-xl font-bold">E-Toko</span>
+              <span className="text-xl font-bold">Ravello</span>
             </div>
             <p className="text-gray-400 mb-4">
-              Tujuan belanja online terpercaya Anda untuk produk berkualitas dengan harga menarik.
+              Tujuan belanja online terpercaya Anda untuk produk berkualitas dengan harga menarik. 
               Kami berkomitmen untuk memberikan Anda pengalaman berbelanja terbaik.
             </p>
             <div className="flex space-x-4">
@@ -109,10 +109,10 @@ export function Footer() {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                <span className="text-gray-400">dukungan@e-toko.com</span>
+                <span className="text-gray-400">dukungan@ravello.com</span>
               </div>
             </div>
-
+            
             <div className="mt-4">
               <h4 className="font-medium mb-2">Jam Buka</h4>
               <p className="text-gray-400 text-sm">
@@ -145,9 +145,9 @@ export function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-gray-400 text-sm mb-4 md:mb-0">
-            © 2024 E-Toko. Hak cipta dilindungi undang-undang.
+            © 2024 Ravello. Hak cipta dilindungi undang-undang.
           </div>
-
+          
           <div className="flex flex-wrap gap-6 text-sm">
             <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">
               Kebijakan Privasi

@@ -1,3 +1,4 @@
+// src/components/products/ProductCard.tsx
 'use client';
 
 import { useState } from 'react';
@@ -9,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Edit, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface ProductCardProps {
   product: ProductWithCategory;
@@ -30,8 +30,7 @@ export function ProductCard({ product, onAddToCart, onDelete, showActions = true
     try {
       await onAddToCart(product.id, quantity);
     } catch (error) {
-      console.error('Gagal menambahkan ke keranjang:', error);
-      toast.error('Gagal menambahkan produk ke keranjang.');
+      console.error('Error adding to cart:', error);
     } finally {
       setIsLoading(false);
     }
@@ -39,55 +38,40 @@ export function ProductCard({ product, onAddToCart, onDelete, showActions = true
 
   const handleDelete = async () => {
     if (!onDelete) return;
-    
-    // Menggunakan toast untuk konfirmasi daripada window.confirm
-    toast('Apakah Anda yakin?', {
-      description: `Produk "${product.name}" akan dihapus secara permanen.`,
-      action: {
-        label: 'Hapus',
-        onClick: async () => {
-          try {
-            await onDelete(product.id);
-            toast.success('Produk berhasil dihapus.');
-          } catch (error) {
-            console.error('Gagal menghapus produk:', error);
-            toast.error('Gagal menghapus produk.');
-          }
-        },
-      },
-      cancel: {
-        label: 'Batal',
-        onClick: () => {},
-      },
-    });
+
+    if (confirm('Are you sure you want to delete this product?')) {
+      try {
+        await onDelete(product.id);
+      } catch (error) {
+        console.error('Error deleting product:', error);
+      }
+    }
   };
 
   const isAdmin = session?.user?.role === 'ADMIN';
   const isOutOfStock = product.stock === 0;
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden rounded-lg border shadow-sm hover:shadow-md transition-shadow duration-300">
+    <Card className="h-full flex flex-col">
       <CardHeader className="p-0">
         <div className="relative h-48 w-full">
-          <Link href={`/products/${product.id}`}>
-            {product.imageUrl ? (
-              <Image
-                src={product.imageUrl}
-                alt={product.name}
-                fill
-                className="object-cover rounded-t-lg"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-200 rounded-t-lg flex items-center justify-center">
-                <span className="text-gray-400">Tidak Ada Gambar</span>
-              </div>
-            )}
-            {isOutOfStock && (
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-t-lg">
-                <Badge variant="destructive">Stok Habis</Badge>
-              </div>
-            )}
-          </Link>
+          {product.imageUrl ? (
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              fill
+              className="object-cover rounded-t-lg"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 rounded-t-lg flex items-center justify-center">
+              <span className="text-gray-400">No Image</span>
+            </div>
+          )}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-t-lg">
+              <Badge variant="destructive">Out of Stock</Badge>
+            </div>
+          )}
         </div>
       </CardHeader>
 
@@ -101,14 +85,14 @@ export function ProductCard({ product, onAddToCart, onDelete, showActions = true
           </Badge>
 
           <Link href={`/products/${product.id}`}>
-            <h3 className="font-semibold text-lg hover:text-blue-600 transition-colors truncate">{product.name}</h3>
+            <h3 className="font-semibold text-lg hover:text-blue-600 transition-colors">{product.name}</h3>
           </Link>
 
           {product.description && <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>}
 
-          <div className="flex justify-between items-center pt-2">
-            <span className="text-2xl font-bold text-green-600">Rp{Number(product.price).toLocaleString('id-ID')}</span>
-            <span className="text-sm text-gray-500">Stok: {product.stock}</span>
+          <div className="flex justify-between items-center">
+            <span className="text-2xl font-bold text-green-600">${Number(product.price).toFixed(2)}</span>
+            <span className="text-sm text-gray-500">Stock: {product.stock}</span>
           </div>
         </div>
       </CardContent>
@@ -126,7 +110,7 @@ export function ProductCard({ product, onAddToCart, onDelete, showActions = true
                   className="w-full"
                 >
                   <Edit className="w-4 h-4 mr-2" />
-                  Ubah
+                  Edit
                 </Button>
               </Link>
               <Button
@@ -135,7 +119,7 @@ export function ProductCard({ product, onAddToCart, onDelete, showActions = true
                 className="flex-1"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Hapus
+                Delete
               </Button>
             </div>
           ) : (
@@ -145,7 +129,7 @@ export function ProductCard({ product, onAddToCart, onDelete, showActions = true
               className="w-full"
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
-              {isLoading ? 'Menambahkan...' : 'Tambah ke Keranjang'}
+              {isLoading ? 'Adding...' : 'Add to Cart'}
             </Button>
           )}
         </CardFooter>

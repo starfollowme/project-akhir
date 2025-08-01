@@ -47,7 +47,7 @@ export function Header() {
             className="flex items-center space-x-2"
           >
             <Package className="h-6 w-6" />
-            <span className="text-xl font-bold">E-Toko</span>
+            <span className="text-xl font-bold">Ravello</span>
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">

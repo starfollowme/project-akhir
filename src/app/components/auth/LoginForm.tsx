@@ -36,7 +36,7 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
       ...prev,
       [field]: value
     }))
-
+    
     if (errors[field as keyof typeof errors]) {
       setErrors(prev => ({
         ...prev,
@@ -51,13 +51,13 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
     if (!formData.email) {
       newErrors.email = 'Email wajib diisi'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Silakan masukkan alamat email yang valid'
+      newErrors.email = 'Harap masukkan alamat email yang valid'
     }
 
     if (!formData.password) {
       newErrors.password = 'Kata sandi wajib diisi'
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Kata sandi harus terdiri dari minimal 6 karakter'
+      newErrors.password = 'Kata sandi minimal 6 karakter'
     }
 
     setErrors(newErrors)
@@ -66,7 +66,7 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    
     if (!validateForm()) {
       return
     }
@@ -86,9 +86,9 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
         toast.error('Email atau kata sandi tidak valid')
       } else if (result?.ok) {
         toast.success('Login berhasil!')
-
+        
         const session = await getSession()
-
+        
         if (session?.user?.role === 'ADMIN') {
           router.push('/admin/dashboard')
         } else {
@@ -111,7 +111,7 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
     }
 
     setFormData(credentials[role])
-
+    
     setTimeout(() => {
       handleSubmit(new Event('submit') as any)
     }, 100)
@@ -122,10 +122,10 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">Masuk</CardTitle>
         <CardDescription>
-          Masukkan email dan kata sandi Anda untuk mengakses akun Anda
+          Masukkan email dan kata sandi Anda untuk mengakses akun
         </CardDescription>
       </CardHeader>
-
+      
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {errors.general && (
@@ -135,7 +135,7 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Alamat Email</Label>
+            <Label htmlFor="email">Alamat email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
@@ -226,8 +226,8 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
                 Ingat saya
               </Label>
             </div>
-            <Link
-              href="/auth/forgot-password"
+            <Link 
+              href="/auth/forgot-password" 
               className="text-sm text-primary hover:underline"
             >
               Lupa kata sandi?
@@ -236,9 +236,9 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-4">
-          <Button
-            type="submit"
-            className="w-full"
+          <Button 
+            type="submit" 
+            className="w-full" 
             disabled={isLoading}
           >
             {isLoading ? (
@@ -250,7 +250,7 @@ export function LoginForm({ callbackUrl = '/', className }: LoginFormProps) {
               'Masuk'
             )}
           </Button>
-
+          
           <p className="text-center text-sm text-gray-600">
             Belum punya akun?{' '}
             <Link href="/auth/register" className="font-medium text-primary hover:underline">
