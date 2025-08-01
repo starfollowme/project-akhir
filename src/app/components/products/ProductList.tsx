@@ -1,4 +1,3 @@
-// src/components/products/ProductList.tsx
 'use client'
 
 import { useState } from 'react'
@@ -49,7 +48,6 @@ export function ProductList({
   if (loading) {
     return (
       <div className="space-y-6">
-        {/* Loading Filters */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex gap-2 flex-1">
             <div className="flex-1 h-10 bg-gray-200 rounded animate-pulse"></div>
@@ -58,7 +56,6 @@ export function ProductList({
           <div className="w-48 h-10 bg-gray-200 rounded animate-pulse"></div>
         </div>
 
-        {/* Loading Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="animate-pulse">
@@ -77,37 +74,33 @@ export function ProductList({
 
   return (
     <div className="space-y-6">
-      {/* Filters and Controls */}
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-        {/* Search and Filter */}
         <div className="flex flex-col md:flex-row gap-4 flex-1">
-          {/* Search */}
           {onSearch && (
             <form onSubmit={handleSearch} className="flex gap-2 flex-1">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Cari produk..."
                   value={localSearch}
                   onChange={(e) => setLocalSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
-              <Button type="submit">Search</Button>
+              <Button type="submit">Cari</Button>
             </form>
           )}
 
-          {/* Category Filter */}
           {onCategoryChange && categories.length > 0 && (
             <div className="flex gap-2 items-center">
               <Filter className="w-4 h-4 text-gray-400" />
               <Select value={selectedCategory} onValueChange={handleCategoryChange}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="All Categories" />
+                  <SelectValue placeholder="Semua Kategori" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="">Semua Kategori</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.slug}>
                       {category.name}
@@ -119,7 +112,6 @@ export function ProductList({
           )}
         </div>
 
-        {/* View Mode Toggle */}
         <div className="flex items-center gap-2">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'ghost'}
@@ -138,19 +130,17 @@ export function ProductList({
         </div>
       </div>
 
-      {/* Results Count */}
       {products.length > 0 && (
         <div className="text-sm text-gray-600">
-          Showing {products.length} product{products.length !== 1 ? 's' : ''}
-          {selectedCategory && ` in ${categories.find(c => c.slug === selectedCategory)?.name}`}
-          {searchTerm && ` for "${searchTerm}"`}
+          Menampilkan {products.length} produk
+          {selectedCategory && ` dalam ${categories.find(c => c.slug === selectedCategory)?.name}`}
+          {searchTerm && ` untuk "${searchTerm}"`}
         </div>
       )}
 
-      {/* Products Grid/List */}
       {products.length > 0 ? (
         <div className={
-          viewMode === 'grid' 
+          viewMode === 'grid'
             ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             : "space-y-4"
         }>
@@ -166,16 +156,15 @@ export function ProductList({
           ))}
         </div>
       ) : (
-        /* Empty State */
         <div className="text-center py-12">
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="w-12 h-12 text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">No products found</h3>
+          <h3 className="text-lg font-semibold mb-2">Tidak ada produk yang ditemukan</h3>
           <p className="text-gray-600 mb-4">
-            {searchTerm || selectedCategory 
-              ? 'Try adjusting your search or filter criteria'
-              : 'No products are available at the moment'
+            {searchTerm || selectedCategory
+              ? 'Coba sesuaikan kriteria pencarian atau filter Anda'
+              : 'Tidak ada produk yang tersedia saat ini'
             }
           </p>
           {(searchTerm || selectedCategory) && onSearch && onCategoryChange && (
@@ -187,7 +176,7 @@ export function ProductList({
                 onCategoryChange('')
               }}
             >
-              Clear Filters
+              Hapus Filter
             </Button>
           )}
         </div>
