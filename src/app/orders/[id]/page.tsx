@@ -91,7 +91,10 @@ export default function OrderDetailPage() {
             }
         },
         cancel: {
-            label: 'Tidak'
+            label: 'Tidak',
+            onClick: () => {
+                // Do nothing, just dismiss the toast
+            }
         }
     });
   }
