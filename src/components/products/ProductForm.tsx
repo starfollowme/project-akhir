@@ -27,7 +27,7 @@ export interface ProductFormData {
   isActive?: boolean
 }
 
-// PERBAIKAN: Tipe data error yang benar
+// PERBAIKAN: Tipe data khusus untuk menampung pesan error (string)
 interface ProductFormErrors {
     name?: string
     description?: string
