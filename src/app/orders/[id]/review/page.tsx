@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -13,7 +14,6 @@ import { StarRating } from '@/components/ui/star-rating'
 import { 
   ArrowLeft, 
   Package, 
-  Star,
   Send,
   CheckCircle
 } from 'lucide-react'
@@ -47,58 +47,67 @@ export default function OrderReviewPage() {
   }, [status, router])
 
   useEffect(() => {
+    const fetchOrderDetails = async () => {
+      try {
+        const response = await fetch(`/api/orders/${orderId}`)
+        if (!response.ok) {
+            throw new Error('Failed to fetch order details')
+        }
+        const data = await response.json()
+
+        if (data.success) {
+          const orderData = data.data
+          setOrder(orderData)
+
+          if (orderData.status !== 'DELIVERED') {
+            toast.error('Anda hanya dapat mengulas pesanan yang sudah diantar')
+            router.push(`/orders/${orderId}`)
+            return
+          }
+          
+          // Saran: Untuk performa lebih baik, idealnya informasi "canReview"
+          // sudah disertakan dalam respons API /api/orders/${orderId}
+          // untuk menghindari panggilan N+1.
+          const forms: ReviewForm = {}
+          const existing = new Set<string>()
+
+          for (const item of orderData.items) {
+            // Asumsi: Ada endpoint untuk mengecek status ulasan
+            const canReviewResponse = await fetch(`/api/products/${item.product.id}/can-review`)
+            const canReviewData = await canReviewResponse.json()
+            
+            const alreadyReviewed = canReviewData.reason === 'Already reviewed'
+            if (alreadyReviewed) {
+              existing.add(item.product.id)
+            }
+
+            forms[item.product.id] = {
+              rating: 0,
+              comment: '',
+              submitted: alreadyReviewed
+            }
+          }
+
+          setReviewForms(forms)
+          setExistingReviews(existing)
+        } else {
+          toast.error(data.error || 'Pesanan tidak ditemukan')
+          router.push('/orders')
+        }
+      } catch (error) {
+        console.error('Gagal mengambil detail pesanan:', error)
+        toast.error('Gagal memuat detail pesanan.')
+        router.push('/orders')
+      } finally {
+        setLoading(false)
+      }
+    }
+  
     if (session && orderId) {
       fetchOrderDetails()
     }
-  }, [session, orderId])
-
-  const fetchOrderDetails = async () => {
-    try {
-      const response = await fetch(`/api/orders/${orderId}`)
-      const data = await response.json()
-
-      if (data.success) {
-        const orderData = data.data
-        setOrder(orderData)
-
-        if (orderData.status !== 'DELIVERED') {
-          toast.error('Anda hanya dapat mengulas pesanan yang sudah diantar')
-          router.push(`/orders/${orderId}`)
-          return
-        }
-
-        const forms: ReviewForm = {}
-        const existing = new Set<string>()
-
-        for (const item of orderData.items) {
-          const canReviewResponse = await fetch(`/api/products/${item.product.id}/can-review`)
-          const canReviewData = await canReviewResponse.json()
-          
-          if (canReviewData.reason === 'Already reviewed') {
-            existing.add(item.product.id)
-          }
-
-          forms[item.product.id] = {
-            rating: 0,
-            comment: '',
-            submitted: canReviewData.reason === 'Already reviewed'
-          }
-        }
-
-        setReviewForms(forms)
-        setExistingReviews(existing)
-      } else {
-        toast.error('Pesanan tidak ditemukan')
-        router.push('/orders')
-      }
-    } catch (error) {
-      console.error('Gagal mengambil detail pesanan:', error)
-      toast.error('Gagal memuat detail pesanan')
-      router.push('/orders')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, orderId, router])
 
   const handleReviewChange = (productId: string, field: 'rating' | 'comment', value: number | string) => {
     setReviewForms(prev => ({
@@ -114,7 +123,7 @@ export default function OrderReviewPage() {
     const review = reviewForms[productId]
     
     if (review.rating === 0) {
-      toast.error('Silakan pilih peringkat')
+      toast.error('Silakan pilih peringkat bintang terlebih dahulu.')
       return
     }
 
@@ -122,9 +131,7 @@ export default function OrderReviewPage() {
     try {
       const response = await fetch(`/api/products/${productId}/reviews`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rating: review.rating,
           comment: review.comment.trim() || null
@@ -137,29 +144,36 @@ export default function OrderReviewPage() {
         toast.success('Ulasan berhasil dikirim!')
         setReviewForms(prev => ({
           ...prev,
-          [productId]: {
-            ...prev[productId],
-            submitted: true
-          }
+          [productId]: { ...prev[productId], submitted: true }
         }))
-        setExistingReviews(prev => new Set([...prev, productId]))
+        // Perbaikan: Pastikan untuk memperbarui Set secara immutable
+        setExistingReviews(prev => new Set(prev).add(productId))
       } else {
-        toast.error(data.error || 'Gagal mengirim ulasan')
+        toast.error(data.error || 'Gagal mengirim ulasan.')
       }
     } catch (error) {
       console.error('Gagal mengirim ulasan:', error)
-      toast.error('Gagal mengirim ulasan')
+      toast.error('Terjadi kesalahan saat mengirim ulasan.')
     } finally {
       setSubmitting(null)
     }
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     })
+  }
+  
+  const formatCurrency = (amount: number | string) => {
+      return new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+      }).format(Number(amount))
   }
 
   const allReviewsSubmitted = order?.items.every(item => 
@@ -181,23 +195,21 @@ export default function OrderReviewPage() {
   }
 
   if (!session || !order) {
-    return null
+    return null // Atau tampilkan pesan error jika order tidak ditemukan
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
-          <Link href={`/orders/${orderId}`}>
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Kembali ke Pesanan
-            </Button>
-          </Link>
-          <div className="border-l h-6"></div>
+          <Button variant="ghost" size="sm" onClick={() => router.push(`/orders/${orderId}`)}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Kembali ke Pesanan
+          </Button>
+          <div className="border-l border-gray-300 h-6"></div>
           <div>
-            <h1 className="text-3xl font-bold">Ulas Pembelian Anda</h1>
-            <p className="text-gray-600">
+            <h1 className="text-2xl sm:text-3xl font-bold">Ulas Pembelian Anda</h1>
+            <p className="text-gray-600 text-sm">
               Pesanan #{order.orderNumber} • Diantar pada {formatDate(order.updatedAt)}
             </p>
           </div>
@@ -206,12 +218,12 @@ export default function OrderReviewPage() {
         {allReviewsSubmitted && (
           <Card className="mb-8 border-green-200 bg-green-50">
             <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+              <div className="flex items-center gap-4">
+                <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-green-900">Semua Ulasan Terkirim!</h3>
-                  <p className="text-green-700">
-                    Terima kasih telah meluangkan waktu untuk mengulas pembelian Anda. Umpan balik Anda membantu pelanggan lain membuat keputusan yang tepat.
+                  <p className="text-sm text-green-800">
+                    Terima kasih telah meluangkan waktu untuk mengulas pembelian Anda. Umpan balik Anda sangat berarti.
                   </p>
                 </div>
               </div>
@@ -221,67 +233,69 @@ export default function OrderReviewPage() {
 
         <div className="space-y-6">
           {order.items.map((item) => {
-            const review = reviewForms[item.product.id]
-            const isSubmitted = review?.submitted || existingReviews.has(item.product.id)
-            const isSubmittingThis = submitting === item.product.id
+            const review = reviewForms[item.product.id];
+            // Tambahkan pengecekan jika review belum terinisialisasi
+            if (!review) return null;
+
+            const isSubmitted = review.submitted;
+            const isSubmittingThis = submitting === item.product.id;
 
             return (
-              <Card key={item.id}>
+              <Card key={item.id} className="overflow-hidden">
                 <CardHeader>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="relative w-16 h-16 flex-shrink-0">
                       {item.product.imageUrl ? (
                         <Image
                           src={item.product.imageUrl}
                           alt={item.product.name}
                           fill
-                          className="object-cover rounded-lg"
+                          sizes="64px"
+                          className="object-cover rounded-lg border"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                        <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center border">
                           <Package className="w-6 h-6 text-gray-400" />
                         </div>
                       )}
                     </div>
                     
                     <div className="flex-1">
-                      <CardTitle className="text-lg">{item.product.name}</CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                      <CardTitle className="text-lg font-semibold">{item.product.name}</CardTitle>
+                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                         <span>Kuantitas: {item.quantity}</span>
-                        <span>Harga: ${Number(item.price).toFixed(2)}</span>
+                        <span>Harga: {formatCurrency(item.price)}</span>
                       </div>
                     </div>
 
                     {isSubmitted && (
-                      <Badge className="bg-green-100 text-green-800">
-                        <CheckCircle className="w-3 h-3 mr-1" />
+                      <Badge variant="secondary" className="bg-green-100 text-green-800 self-start sm:self-center">
+                        <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
                         Telah Diulas
                       </Badge>
                     )}
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
+                <CardContent>
                   {isSubmitted ? (
-                    <div className="bg-gray-50 p-4 rounded-lg text-center">
-                      <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
-                      <p className="font-medium text-gray-900 mb-1">Ulasan Terkirim</p>
-                      <p className="text-sm text-gray-600">
+                    <div className="bg-gray-50 p-4 rounded-lg text-center border">
+                      <p className="font-medium text-gray-800">
                         Terima kasih telah mengulas produk ini!
                       </p>
                     </div>
                   ) : (
-                    <>
-                      <div className="space-y-2">
-                        <Label>Peringkat Anda *</Label>
-                        <div className="flex items-center gap-4">
+                    <div className="space-y-4 pt-4 border-t">
+                      <div>
+                        <Label className="font-semibold">Peringkat Anda *</Label>
+                        <div className="flex items-center gap-4 mt-2">
                           <StarRating
-                            rating={review?.rating || 0}
+                            rating={review.rating}
                             onRatingChange={(rating) => handleReviewChange(item.product.id, 'rating', rating)}
                             size="lg"
                           />
-                          {review?.rating > 0 && (
-                            <span className="text-sm text-gray-600">
+                          {review.rating > 0 && (
+                            <span className="text-sm font-medium text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">
                               {review.rating} bintang
                             </span>
                           )}
@@ -289,29 +303,29 @@ export default function OrderReviewPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor={`comment-${item.product.id}`}>
+                        <Label htmlFor={`comment-${item.product.id}`} className="font-semibold">
                           Ulasan Anda (Opsional)
                         </Label>
                         <textarea
                           id={`comment-${item.product.id}`}
                           rows={4}
-                          value={review?.comment || ''}
+                          value={review.comment}
                           onChange={(e) => handleReviewChange(item.product.id, 'comment', e.target.value)}
                           placeholder="Bagikan pengalaman Anda dengan produk ini..."
-                          className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                          className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-y"
                           disabled={isSubmittingThis}
                         />
                       </div>
 
                       <Button
                         onClick={() => submitReview(item.product.id)}
-                        disabled={isSubmittingThis || (review?.rating || 0) === 0}
-                        className="w-full"
+                        disabled={isSubmittingThis || review.rating === 0}
+                        className="w-full sm:w-auto"
                       >
                         {isSubmittingThis ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Mengirim Ulasan...
+                            Mengirim...
                           </>
                         ) : (
                           <>
@@ -320,7 +334,7 @@ export default function OrderReviewPage() {
                           </>
                         )}
                       </Button>
-                    </>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -329,12 +343,10 @@ export default function OrderReviewPage() {
         </div>
 
         <div className="mt-8 flex justify-between items-center">
-          <Link href={`/orders/${orderId}`}>
-            <Button variant="outline">
+          <Button variant="outline" onClick={() => router.push(`/orders/${orderId}`)}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Detail Pesanan
-            </Button>
-          </Link>
+          </Button>
 
           {allReviewsSubmitted && (
             <Link href="/orders">
