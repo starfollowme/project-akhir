@@ -1,4 +1,3 @@
-// src/components/layout/Header.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,7 +12,6 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
-  // Fetch cart count
   useEffect(() => {
     if (session) {
       fetchCartCount();
@@ -30,7 +28,7 @@ export function Header() {
         setCartCount(count);
       }
     } catch (error) {
-      console.error('Error fetching cart count:', error);
+      console.error('Gagal mengambil jumlah keranjang:', error);
     }
   };
 
@@ -44,35 +42,33 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
           <Link
             href="/"
             className="flex items-center space-x-2"
           >
             <Package className="h-6 w-6" />
-            <span className="text-xl font-bold">E-Shop</span>
+            <span className="text-xl font-bold">E-Toko</span>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
             <Link
               href="/"
               className="text-sm font-medium hover:text-primary transition-colors"
             >
-              Home
+              Beranda
             </Link>
             <Link
               href="/products"
               className="text-sm font-medium hover:text-primary transition-colors"
             >
-              Products
+              Produk
             </Link>
             {session && (
               <Link
                 href="/orders"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
-                Orders
+                Pesanan
               </Link>
             )}
             {isAdmin && (
@@ -85,11 +81,9 @@ export function Header() {
             )}
           </nav>
 
-          {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             {session ? (
               <>
-                {/* Cart */}
                 <Link
                   href="/cart"
                   className="relative"
@@ -110,7 +104,6 @@ export function Header() {
                   </Button>
                 </Link>
 
-                {/* User Menu */}
                 <div className="relative group">
                   <Button
                     variant="ghost"
@@ -119,7 +112,6 @@ export function Header() {
                     <User className="h-5 w-5" />
                   </Button>
 
-                  {/* Dropdown Menu */}
                   <div className="absolute right-0 top-full mt-2 w-48 bg-background border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="p-2">
                       <div className="px-2 py-1.5 text-sm font-medium border-b">{session.user.name || session.user.email}</div>
@@ -129,7 +121,7 @@ export function Header() {
                         className="flex items-center px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
                       >
                         <Settings className="h-4 w-4 mr-2" />
-                        Profile
+                        Profil
                       </Link>
 
                       <Link
@@ -137,7 +129,7 @@ export function Header() {
                         className="flex items-center px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
                       >
                         <Package className="h-4 w-4 mr-2" />
-                        My Orders
+                        Pesanan Saya
                       </Link>
 
                       {isAdmin && (
@@ -146,7 +138,7 @@ export function Header() {
                           className="flex items-center px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
                         >
                           <Settings className="h-4 w-4 mr-2" />
-                          Admin Panel
+                          Panel Admin
                         </Link>
                       )}
 
@@ -155,7 +147,7 @@ export function Header() {
                         className="flex items-center w-full px-2 py-1.5 text-sm hover:bg-accent rounded-sm text-red-600"
                       >
                         <LogOut className="h-4 w-4 mr-2" />
-                        Sign Out
+                        Keluar
                       </button>
                     </div>
                   </div>
@@ -164,16 +156,15 @@ export function Header() {
             ) : (
               <div className="flex items-center space-x-2">
                 <Link href="/auth/login">
-                  <Button variant="ghost">Sign In</Button>
+                  <Button variant="ghost">Masuk</Button>
                 </Link>
                 <Link href="/auth/register">
-                  <Button>Sign Up</Button>
+                  <Button>Daftar</Button>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2"
@@ -182,7 +173,6 @@ export function Header() {
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden border-t py-4">
             <nav className="flex flex-col space-y-4">
@@ -192,7 +182,7 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Home className="h-4 w-4 mr-2" />
-                Home
+                Beranda
               </Link>
 
               <Link
@@ -201,7 +191,7 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Package className="h-4 w-4 mr-2" />
-                Products
+                Produk
               </Link>
 
               {session ? (
@@ -212,7 +202,7 @@ export function Header() {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
-                    Cart {cartCount > 0 && `(${cartCount})`}
+                    Keranjang {cartCount > 0 && `(${cartCount})`}
                   </Link>
 
                   <Link
@@ -221,7 +211,7 @@ export function Header() {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Package className="h-4 w-4 mr-2" />
-                    Orders
+                    Pesanan
                   </Link>
 
                   {isAdmin && (
@@ -231,7 +221,7 @@ export function Header() {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <Settings className="h-4 w-4 mr-2" />
-                      Admin Panel
+                      Panel Admin
                     </Link>
                   )}
 
@@ -240,7 +230,7 @@ export function Header() {
                     className="flex items-center px-2 py-2 text-sm font-medium hover:bg-accent rounded-sm text-red-600"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
+                    Keluar
                   </button>
                 </>
               ) : (
@@ -253,14 +243,14 @@ export function Header() {
                       variant="ghost"
                       className="w-full justify-start"
                     >
-                      Sign In
+                      Masuk
                     </Button>
                   </Link>
                   <Link
                     href="/auth/register"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Button className="w-full justify-start">Sign Up</Button>
+                    <Button className="w-full justify-start">Daftar</Button>
                   </Link>
                 </div>
               )}
