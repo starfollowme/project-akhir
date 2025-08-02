@@ -4,46 +4,51 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
-// Skema validasi untuk membuat produk baru menggunakan Zod
+// Validation schema for creating a product
 const createProductSchema = z.object({
-  name: z.string().min(1, 'Nama wajib diisi'),
+  name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
-  price: z.coerce.number().positive('Harga harus bernilai positif'),
-  stock: z.coerce.number().int().min(0, 'Stok tidak boleh negatif'),
-  categoryId: z.string().min(1, 'Kategori wajib diisi'),
-  imageUrl: z.string().url('URL gambar tidak valid').optional().nullable(),
+  price: z.coerce.number().positive('Price must be positive'),
+  stock: z.coerce.number().int().min(0, 'Stock cannot be negative'),
+  categoryId: z.string().min(1, 'Category is required'),
+  imageUrl: z.string().url('Invalid image URL').optional().nullable(),
 })
 
-// GET /api/products - Menangani permintaan untuk publik dan admin
+// GET /api/products - Handle requests for both public and admin
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     const isAdmin = session?.user?.role === 'ADMIN'
 
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
+    const page = parseInt(searchParams.get('page') || '1', 10)
+    const limit = parseInt(searchParams.get('limit') || '10', 10)
     const category = searchParams.get('category')
     const search = searchParams.get('search')
-    const status = searchParams.get('status') // Hanya digunakan oleh admin
+    const status = searchParams.get('status') // Only used by admin
 
     const skip = (page - 1) * limit
-    const where: any = {}
+    const where: {
+      isActive?: boolean
+      category?: { slug: string }
+      OR?: Array<{
+        name?: { contains: string; mode: 'insensitive' }
+        description?: { contains: string; mode: 'insensitive' }
+      }>
+    } = {}
 
-    // Logika Kondisional:
-    // Jika bukan admin, paksa hanya tampilkan produk yang aktif.
-    // Jika admin, tampilkan semua kecuali ada filter status.
+    // Conditional logic:
+    // If not admin, only show active products
+    // If admin, show all unless filtered by status
     if (!isAdmin) {
       where.isActive = true
-    } else {
-      if (status === 'active') {
-        where.isActive = true
-      } else if (status === 'inactive') {
-        where.isActive = false
-      }
+    } else if (status === 'active') {
+      where.isActive = true
+    } else if (status === 'inactive') {
+      where.isActive = false
     }
 
-    // Filter umum untuk publik dan admin
+    // Common filters for public and admin
     if (category) {
       where.category = { slug: category }
     }
@@ -58,9 +63,9 @@ export async function GET(request: NextRequest) {
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
-        include: { 
+        include: {
           category: true,
-          // Hanya sertakan data tambahan jika itu admin
+          // Only include additional data if admin
           ...(isAdmin && {
             _count: {
               select: {
@@ -72,7 +77,7 @@ export async function GET(request: NextRequest) {
         },
         skip,
         take: limit,
-        // Urutan berbeda untuk admin
+        // Different ordering for admin
         orderBy: isAdmin
           ? [{ isActive: 'desc' }, { createdAt: 'desc' }]
           : { createdAt: 'desc' }
@@ -87,7 +92,7 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(total / limit)
     }
 
-    // Jika admin, sertakan statistik tambahan
+    // If admin, include additional stats
     if (isAdmin) {
       const statsResult = await prisma.product.groupBy({
         by: ['isActive'],
@@ -110,7 +115,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Respon standar untuk publik
+    // Standard response for public
     return NextResponse.json({
       success: true,
       data: {
@@ -120,12 +125,12 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Gagal mengambil produk:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan tidak diketahui'
+    console.error('Failed to fetch products:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Gagal mengambil produk', 
+        error: 'Failed to fetch products', 
         details: errorMessage 
       },
       { status: 500 }
@@ -133,14 +138,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/products - Membuat produk baru (hanya admin)
+// POST /api/products - Create new product (admin only)
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
     if (!session || session.user?.role !== 'ADMIN') {
       return NextResponse.json(
-        { success: false, error: 'Akses ditolak' },
+        { success: false, error: 'Unauthorized access' },
         { status: 401 }
       )
     }
@@ -152,7 +157,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Kesalahan validasi',
+          error: 'Validation error',
           details: validation.error.flatten().fieldErrors,
         },
         { status: 400 }
@@ -167,17 +172,23 @@ export async function POST(request: NextRequest) {
 
     if (!category) {
       return NextResponse.json(
-        { success: false, error: 'Kategori tidak ditemukan' },
+        { success: false, error: 'Category not found' },
         { status: 404 }
       )
     }
 
+    const productData = {
+      name: validatedData.name,
+      description: validatedData.description ?? null,
+      price: validatedData.price,
+      stock: validatedData.stock,
+      categoryId: validatedData.categoryId,
+      imageUrl: validatedData.imageUrl ?? null,
+      isActive: true
+    }
+
     const product = await prisma.product.create({
-      data: {
-        ...validatedData,
-        imageUrl: validatedData.imageUrl || null,
-        isActive: true, // Produk baru otomatis aktif
-      },
+      data: productData,
       include: { category: true }
     })
 
@@ -185,15 +196,15 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         data: product,
-        message: 'Produk berhasil dibuat'
+        message: 'Product created successfully'
       },
       { status: 201 }
     )
   } catch (error) {
-    console.error('Gagal membuat produk:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan tidak diketahui';
+    console.error('Failed to create product:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { success: false, error: 'Gagal membuat produk', details: errorMessage },
+      { success: false, error: 'Failed to create product', details: errorMessage },
       { status: 500 }
     )
   }

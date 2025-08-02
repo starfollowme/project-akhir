@@ -67,35 +67,33 @@ export default function OrderDetailPage() {
 
   const handleCancelOrder = async () => {
     toast('Apakah Anda yakin ingin membatalkan pesanan ini?', {
-        description: 'Tindakan ini tidak dapat diurungkan.',
-        action: {
-            label: 'Batalkan Pesanan',
-            onClick: async () => {
-                setIsCancelling(true);
-                try {
-                    const response = await fetch(`/api/orders/${orderId}`, {
-                        method: 'DELETE',
-                    });
-                    const result = await response.json();
-                    if (!response.ok) {
-                        throw new Error(result.details || result.error || 'Gagal membatalkan pesanan');
-                    }
-                    toast.success('Pesanan berhasil dibatalkan');
-                    fetchOrderDetails(); // Muat ulang detail pesanan
-                } catch (error: any) {
-                    console.error('Gagal membatalkan pesanan:', error);
-                    toast.error(error.message);
-                } finally {
-                    setIsCancelling(false);
-                }
+      description: 'Tindakan ini tidak dapat diurungkan.',
+      action: {
+        label: 'Batalkan Pesanan',
+        onClick: async () => {
+          setIsCancelling(true);
+          try {
+            const response = await fetch(`/api/orders/${orderId}`, {
+              method: 'DELETE',
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.details || result.error || 'Gagal membatalkan pesanan');
             }
-        },
-        cancel: {
-            label: 'Tidak',
-            onClick: () => {
-                // Do nothing, just dismiss the toast
-            }
+            toast.success('Pesanan berhasil dibatalkan');
+            fetchOrderDetails();
+          } catch (error: any) {
+            console.error('Gagal membatalkan pesanan:', error);
+            toast.error(error.message);
+          } finally {
+            setIsCancelling(false);
+          }
         }
+      },
+      cancel: {
+        label: 'Tidak',
+        onClick: () => {} // Added empty onClick to satisfy the type
+      }
     });
   }
 
@@ -185,7 +183,7 @@ export default function OrderDetailPage() {
   }, 0)
   
   const total = Number(order.total)
-  const shipping = total - subtotal; // Simple calculation for shipping
+  const shipping = total - subtotal
 
   return (
     <div className="container mx-auto px-4 py-8">

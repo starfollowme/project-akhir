@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
+import { supabase } from '@/lib/supabase'
+import { v4 as uuidv4 } from 'uuid'
 
+// ✅ POST: Upload gambar ke Supabase Storage
 export async function POST(request: NextRequest) {
   try {
+    // ✅ Cek session & role admin
     const session = await getServerSession(authOptions)
-
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, error: 'Akses ditolak - Diperlukan akses Admin' },
@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ✅ Ambil file dari formData
     const formData = await request.formData()
     const file = formData.get('file') as File
 
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ✅ Validasi tipe file
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
@@ -34,7 +36,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const maxSize = 5 * 1024 * 1024 // 5MB
+    // ✅ Validasi ukuran file (max 5MB)
+    const maxSize = 5 * 1024 * 1024
     if (file.size > maxSize) {
       return NextResponse.json(
         { success: false, error: 'File terlalu besar. Ukuran maksimal adalah 5MB.' },
@@ -42,50 +45,63 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(2, 15)
-    const fileExtension = file.name.split('.').pop()
-    const fileName = `produk-${timestamp}-${randomString}.${fileExtension}`
+    // ✅ Buat nama file unik
+    const fileExt = file.name.split('.').pop()
+    const fileName = `produk-${uuidv4()}.${fileExt}`
 
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'products')
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true })
+    // ✅ Konversi file ke buffer
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // ✅ Upload ke Supabase Storage (bucket: products)
+    const { error: uploadError } = await supabase.storage
+      .from('products')
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        upsert: false // hindari overwrite
+      })
+
+    if (uploadError) {
+      console.error('Supabase Upload Error:', uploadError.message)
+      return NextResponse.json(
+        { success: false, error: 'Gagal upload ke Supabase', details: uploadError.message },
+        { status: 500 }
+      )
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    const filePath = join(uploadsDir, fileName)
-    
-    await writeFile(filePath, buffer)
+    // ✅ Ambil public URL file
+    const { data: publicUrl } = supabase.storage
+      .from('products')
+      .getPublicUrl(fileName)
 
-    // URL yang akan digunakan di frontend, relatif terhadap folder public
-    const imageUrl = `/uploads/products/${fileName}`
+    if (!publicUrl) {
+      return NextResponse.json(
+        { success: false, error: 'Gagal mendapatkan URL publik' },
+        { status: 500 }
+      )
+    }
 
-    // PERBAIKAN: Mengembalikan URL langsung di level atas agar mudah diakses
+    // ✅ Respon sukses
     return NextResponse.json({
       success: true,
-      url: imageUrl, // <-- Diubah dari data.url menjadi url
-      message: 'Gambar berhasil diunggah'
+      url: publicUrl.publicUrl,
+      fileName: fileName,
+      message: 'Gambar berhasil diunggah ke Supabase'
     })
   } catch (error) {
     console.error('Gagal mengunggah gambar:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan tidak diketahui'
+    const message = error instanceof Error ? error.message : 'Terjadi kesalahan server'
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Gagal mengunggah gambar', 
-        details: errorMessage 
-      },
+      { success: false, error: message },
       { status: 500 }
     )
   }
 }
 
-// DELETE /api/upload - Menghapus gambar (opsional)
+// ✅ DELETE: Hapus gambar dari Supabase Storage
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, error: 'Akses ditolak - Diperlukan akses Admin' },
@@ -93,24 +109,39 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
+    // ✅ Ambil query param "file"
     const { searchParams } = new URL(request.url)
-    const imageUrl = searchParams.get('url')
+    const imageName = searchParams.get('file')
 
-    if (!imageUrl || !imageUrl.startsWith('/uploads/products/')) {
+    if (!imageName) {
       return NextResponse.json(
-        { success: false, error: 'URL gambar tidak valid' },
+        { success: false, error: 'Nama file tidak ditemukan di query parameter' },
         { status: 400 }
       )
     }
-    
+
+    // ✅ Hapus file dari Supabase Storage
+    const { error: deleteError } = await supabase.storage
+      .from('products')
+      .remove([imageName])
+
+    if (deleteError) {
+      console.error('Supabase Delete Error:', deleteError.message)
+      return NextResponse.json(
+        { success: false, error: 'Gagal menghapus file', details: deleteError.message },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Permintaan penghapusan gambar diterima'
+      message: `File ${imageName} berhasil dihapus dari Supabase`
     })
   } catch (error) {
     console.error('Gagal menghapus gambar:', error)
+    const message = error instanceof Error ? error.message : 'Terjadi kesalahan server'
     return NextResponse.json(
-      { success: false, error: 'Gagal menghapus gambar' },
+      { success: false, error: message },
       { status: 500 }
     )
   }

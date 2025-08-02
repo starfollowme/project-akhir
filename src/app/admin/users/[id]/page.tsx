@@ -1,5 +1,8 @@
 'use client'
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
@@ -7,7 +10,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import {
   ArrowLeft,
   User,
@@ -121,7 +124,6 @@ export default function AdminUserDetailPage() {
   const deactivateUser = async () => {
     toast(`Menonaktifkan ${user?.name || user?.email}...`);
     try {
-      // Logika penonaktifan pengguna akan ada di sini
       toast.success('Pengguna berhasil dinonaktifkan')
     } catch (error) {
       toast.error('Gagal menonaktifkan pengguna')
@@ -153,6 +155,23 @@ export default function AdminUserDetailPage() {
         return 'bg-red-100 text-red-800'
       default:
         return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return 'Menunggu'
+      case 'PROCESSING':
+        return 'Diproses'
+      case 'SHIPPED':
+        return 'Dikirim'
+      case 'DELIVERED':
+        return 'Terkirim'
+      case 'CANCELLED':
+        return 'Dibatalkan'
+      default:
+        return status
     }
   }
 
@@ -221,6 +240,7 @@ export default function AdminUserDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Informasi Pengguna */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -281,6 +301,7 @@ export default function AdminUserDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Pesanan Terbaru */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -300,18 +321,18 @@ export default function AdminUserDetailPage() {
                       <div className="flex items-center gap-4">
                         <div>
                           <p className="font-medium">#{order.orderNumber}</p>
-                          <p className="text-sm text-gray-600">
-                            {formatDate(order.createdAt)}
-                          </p>
+                          <p className="text-sm text-gray-600">{formatDate(order.createdAt)}</p>
                         </div>
                         <Badge className={getStatusColor(order.status)}>
-                          {order.status}
+                          {getStatusLabel(order.status)}
                         </Badge>
                       </div>
 
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <p className="font-medium">Rp{Number(order.total).toLocaleString('id-ID')}</p>
+                          <p className="font-medium">
+                            {Number(order.total).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                          </p>
                         </div>
                         <Link href={`/admin/orders/${order.id}`}>
                           <Button variant="ghost" size="sm">
@@ -332,6 +353,7 @@ export default function AdminUserDetailPage() {
           </Card>
         </div>
 
+        {/* Sidebar */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -351,7 +373,9 @@ export default function AdminUserDetailPage() {
                   <DollarSign className="w-4 h-4 text-gray-400" />
                   <span className="text-sm">Total Belanja</span>
                 </div>
-                <span className="font-semibold">Rp{calculateTotalSpent().toLocaleString('id-ID')}</span>
+                <span className="font-semibold">
+                  {calculateTotalSpent().toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -362,8 +386,7 @@ export default function AdminUserDetailPage() {
                 <span className="font-semibold">
                   {user.orders && user.orders.length > 0
                     ? new Date(user.orders[0].createdAt).toLocaleDateString('id-ID')
-                    : 'Tidak Pernah'
-                  }
+                    : 'Tidak Pernah'}
                 </span>
               </div>
             </CardContent>
@@ -386,9 +409,7 @@ export default function AdminUserDetailPage() {
 
               <div className="flex items-center justify-between">
                 <span className="text-sm">Login Terakhir</span>
-                <span className="text-sm text-gray-600">
-                  {formatDate(user.updatedAt)}
-                </span>
+                <span className="text-sm text-gray-600">{formatDate(user.updatedAt)}</span>
               </div>
             </CardContent>
           </Card>

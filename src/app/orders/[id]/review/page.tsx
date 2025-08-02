@@ -13,6 +13,7 @@ import { StarRating } from '@/components/ui/star-rating'
 import { 
   ArrowLeft, 
   Package, 
+  Star,
   Send,
   CheckCircle
 } from 'lucide-react'
@@ -41,9 +42,7 @@ export default function OrderReviewPage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push(
-        '/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname)
-      )
+      router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))
     }
   }, [status, router])
 
@@ -55,45 +54,64 @@ export default function OrderReviewPage() {
 
   const fetchOrderDetails = async () => {
     try {
-      const res = await fetch(`/api/orders/${orderId}`)
-      const data = await res.json()
-      if (!data.success) throw new Error()
-      const orderData = data.data
-      setOrder(orderData)
-      if (orderData.status !== 'DELIVERED') {
-        toast.error('Anda hanya dapat mengulas pesanan yang sudah diantar')
-        router.push(`/orders/${orderId}`)
-        return
-      }
-      const forms: ReviewForm = {}
-      const existing = new Set<string>()
-      for (const item of orderData.items) {
-        const r = await fetch(
-          `/api/products/${item.product.id}/can-review`
-        )
-        const info = await r.json()
-        if (info.reason === 'Already reviewed') existing.add(item.product.id)
-        forms[item.product.id] = {
-          rating: 0,
-          comment: '',
-          submitted: info.reason === 'Already reviewed'
+      setLoading(true)
+      const response = await fetch(`/api/orders/${orderId}`)
+      const data = await response.json()
+
+      if (data.success) {
+        const orderData = data.data
+        setOrder(orderData)
+
+        if (orderData.status !== 'DELIVERED') {
+          toast.error('Anda hanya dapat mengulas pesanan yang sudah diantar')
+          router.push(`/orders/${orderId}`)
+          return
         }
+
+        const forms: ReviewForm = {}
+        const existing = new Set<string>()
+
+        // Process items and check for existing reviews
+        for (const item of orderData.items) {
+          try {
+            const canReviewResponse = await fetch(`/api/products/${item.product.id}/can-review`)
+            const canReviewData = await canReviewResponse.json()
+            
+            if (canReviewData.reason === 'Already reviewed') {
+              existing.add(item.product.id)
+            }
+
+            forms[item.product.id] = {
+              rating: 0,
+              comment: '',
+              submitted: canReviewData.reason === 'Already reviewed'
+            }
+          } catch (error) {
+            console.error(`Error checking review status for product ${item.product.id}:`, error)
+            forms[item.product.id] = {
+              rating: 0,
+              comment: '',
+              submitted: false
+            }
+          }
+        }
+
+        setReviewForms(forms)
+        setExistingReviews(existing)
+      } else {
+        toast.error('Pesanan tidak ditemukan')
+        router.push('/orders')
       }
-      setReviewForms(forms)
-      setExistingReviews(existing)
-    } catch {
-      toast.error('Gagal memuat data pesanan')
+    } catch (error) {
+      console.error('Gagal mengambil detail pesanan:', error)
+      toast.error('Gagal memuat detail pesanan')
       router.push('/orders')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleReviewChange = (
-    productId: string,
-    field: 'rating' | 'comment',
-    value: number | string
-  ) => {
+  const handleReviewChange = (productId: string, field: 'rating' | 'comment', value: number | string) => {
     setReviewForms(prev => ({
       ...prev,
       [productId]: {
@@ -105,165 +123,243 @@ export default function OrderReviewPage() {
 
   const submitReview = async (productId: string) => {
     const review = reviewForms[productId]
+    
     if (!review || review.rating === 0) {
-      toast.error('Pilih peringkat terlebih dahulu')
+      toast.error('Silakan pilih peringkat')
       return
     }
+
     setSubmitting(productId)
     try {
-      const res = await fetch(
-        `/api/products/${productId}/reviews`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            rating: review.rating,
-            comment: review.comment || null
-          })
-        }
-      )
-      const resData = await res.json()
-      if (!resData.success) throw new Error()
-      toast.success('Ulasan berhasil dikirim!')
-      setReviewForms(prev => ({
-        ...prev,
-        [productId]: { ...prev[productId], submitted: true }
-      }))
-      setExistingReviews(prev => new Set(prev).add(productId))
-    } catch {
+      const response = await fetch(`/api/products/${productId}/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          rating: review.rating,
+          comment: review.comment.trim() || null
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success('Ulasan berhasil dikirim!')
+        setReviewForms(prev => ({
+          ...prev,
+          [productId]: {
+            ...prev[productId],
+            submitted: true
+          }
+        }))
+        // Update existing reviews with spread operator and Array.from for Set
+        setExistingReviews(prev => new Set(Array.from(prev).concat(productId)))
+      } else {
+        toast.error(data.error || 'Gagal mengirim ulasan')
+      }
+    } catch (error) {
+      console.error('Gagal mengirim ulasan:', error)
       toast.error('Gagal mengirim ulasan')
     } finally {
       setSubmitting(null)
     }
   }
 
-  const formatDate = (date: string | Date) => {
-    const d = typeof date === 'string' ? new Date(date) : date
-    return d.toLocaleDateString('id-ID', {
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString
+    return date.toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     })
   }
 
+  const allReviewsSubmitted = order?.items.every(item => {
+    const productId = item.product.id
+    const form = reviewForms[productId]
+    return form?.submitted || existingReviews.has(productId)
+  }) ?? false
+
   if (status === 'loading' || loading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-40 bg-gray-200 rounded"></div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="h-96 bg-gray-200 rounded"></div>
+          </div>
         </div>
       </div>
     )
   }
 
-  if (!session || !order) return null
-
-  const allSubmitted = order.items.every(
-    item =>
-      reviewForms[item.product.id]?.submitted ||
-      existingReviews.has(item.product.id)
-  )
+  if (!session || !order) {
+    return null
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center mb-6">
-        <Link href={`/orders/${orderId}`}>
-          <Button variant="ghost">
-            <ArrowLeft className="mr-2" /> Kembali
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-bold ml-4">Ulas Pembelian Anda</h1>
-      </div>
-      <p className="mb-6 text-gray-600">
-        Pesanan #{order.orderNumber} • Diantar pada {formatDate(order.updatedAt)}
-      </p>
-      {allSubmitted && (
-        <Card className="mb-6 bg-green-50 border-green-200">
-          <CardContent>
-            <div className="flex items-center">
-              <CheckCircle className="text-green-600 mr-2" />
-              <span className="text-green-900">Semua ulasan telah dikirim!</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      <div className="space-y-4">
-        {order.items.map(item => {
-          const info = reviewForms[item.product.id]
-          const isDone = info?.submitted || existingReviews.has(item.product.id)
-          return (
-            <Card key={item.id}>
-              <CardHeader>
-                <div className="flex items-center">
-                  <div className="w-16 h-16 mr-4 relative">
-                    {item.product.imageUrl ? (
-                      <Image
-                        src={item.product.imageUrl}
-                        alt={item.product.name}
-                        fill
-                        className="object-cover rounded"
-                      />
-                    ) : (
-                      <Package className="text-gray-400" size={32} />
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <Link href={`/orders/${orderId}`}>
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Kembali ke Pesanan
+            </Button>
+          </Link>
+          <div className="border-l h-6"></div>
+          <div>
+            <h1 className="text-3xl font-bold">Ulas Pembelian Anda</h1>
+            <p className="text-gray-600">
+              Pesanan #{order.orderNumber} • Diantar pada {formatDate(order.updatedAt)}
+            </p>
+          </div>
+        </div>
+
+        {allReviewsSubmitted && (
+          <Card className="mb-8 border-green-200 bg-green-50">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+                <div>
+                  <h3 className="font-semibold text-green-900">Semua Ulasan Terkirim!</h3>
+                  <p className="text-green-700">
+                    Terima kasih telah meluangkan waktu untuk mengulas pembelian Anda. Umpan balik Anda membantu pelanggan lain membuat keputusan yang tepat.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="space-y-6">
+          {order.items.map((item) => {
+            const review = reviewForms[item.product.id]
+            const isSubmitted = review?.submitted || existingReviews.has(item.product.id)
+            const isSubmittingThis = submitting === item.product.id
+
+            return (
+              <Card key={item.id}>
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-16 h-16 flex-shrink-0">
+                      {item.product.imageUrl ? (
+                        <Image
+                          src={item.product.imageUrl}
+                          alt={item.product.name}
+                          fill
+                          className="object-cover rounded-lg"
+                          unoptimized={item.product.imageUrl.startsWith('/')}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                          <Package className="w-6 h-6 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{item.product.name}</CardTitle>
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                        <span>Kuantitas: {item.quantity}</span>
+                        <span>Harga: ${Number(item.price).toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    {isSubmitted && (
+                      <Badge className="bg-green-100 text-green-800">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Telah Diulas
+                      </Badge>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <CardTitle>{item.product.name}</CardTitle>
-                    <p className="text-sm text-gray-600">
-                      Qty: {item.quantity} • Harga: ${item.price}
-                    </p>
-                  </div>
-                  {isDone && (
-                    <Badge className="bg-green-100 text-green-800">
-                      Telah Diulas
-                    </Badge>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                  {isSubmitted ? (
+                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                      <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
+                      <p className="font-medium text-gray-900 mb-1">Ulasan Terkirim</p>
+                      <p className="text-sm text-gray-600">
+                        Terima kasih telah mengulas produk ini!
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Peringkat Anda *</Label>
+                        <div className="flex items-center gap-4">
+                          <StarRating
+                            rating={review?.rating || 0}
+                            onRatingChange={(rating) => handleReviewChange(item.product.id, 'rating', rating)}
+                            size="lg"
+                          />
+                          {review?.rating > 0 && (
+                            <span className="text-sm text-gray-600">
+                              {review.rating} bintang
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`comment-${item.product.id}`}>
+                          Ulasan Anda (Opsional)
+                        </Label>
+                        <textarea
+                          id={`comment-${item.product.id}`}
+                          rows={4}
+                          value={review?.comment || ''}
+                          onChange={(e) => handleReviewChange(item.product.id, 'comment', e.target.value)}
+                          placeholder="Bagikan pengalaman Anda dengan produk ini..."
+                          className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                          disabled={isSubmittingThis}
+                        />
+                      </div>
+
+                      <Button
+                        onClick={() => submitReview(item.product.id)}
+                        disabled={isSubmittingThis || (review?.rating || 0) === 0}
+                        className="w-full"
+                      >
+                        {isSubmittingThis ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Mengirim Ulasan...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Kirim Ulasan
+                          </>
+                        )}
+                      </Button>
+                    </>
                   )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {isDone ? (
-                  <div className="text-center text-gray-700">
-                    Terima kasih atas ulasannya!
-                  </div>
-                ) : (
-                  <>
-                    <Label>Peringkat Anda</Label>
-                    <StarRating
-                      rating={info?.rating || 0}
-                      onRatingChange={val =>
-                        handleReviewChange(item.product.id, 'rating', val)
-                      }
-                      size="lg"
-                    />
-                    <Label className="mt-4">Komentar (opsional)</Label>
-                    <textarea
-                      rows={3}
-                      className="w-full border rounded p-2"
-                      value={info?.comment || ''}
-                      onChange={e =>
-                        handleReviewChange(
-                          item.product.id,
-                          'comment',
-                          e.target.value
-                        )
-                      }
-                    />
-                    <Button
-                      className="mt-4"
-                      onClick={() => submitReview(item.product.id)}
-                      disabled={submitting === item.product.id}
-                    >
-                      {submitting === item.product.id
-                        ? 'Mengirim...'
-                        : 'Kirim Ulasan'}
-                    </Button>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )
-        })}
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+
+        <div className="mt-8 flex justify-between items-center">
+          <Link href={`/orders/${orderId}`}>
+            <Button variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Kembali ke Detail Pesanan
+            </Button>
+          </Link>
+
+          {allReviewsSubmitted && (
+            <Link href="/orders">
+              <Button>
+                Lihat Semua Pesanan
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   )

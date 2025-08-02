@@ -26,11 +26,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10', 10);
     const skip = (page - 1) * limit;
 
-    // Menentukan kondisi filter berdasarkan peran pengguna
+    // Filter berdasarkan role
     const where: Prisma.OrderWhereInput =
       session.user.role === 'ADMIN' ? {} : { userId: session.user.id };
 
-    // Menggunakan transaksi untuk mengambil data pesanan dan total hitungan secara konsisten
     const [orders, total] = await prisma.$transaction([
       prisma.order.findMany({
         where,
@@ -40,24 +39,32 @@ export async function GET(request: NextRequest) {
               product: true,
             },
           },
-          // Secara kondisional menyertakan detail pengguna untuk admin
-          user: session.user.role === 'ADMIN' ? {
-            select: { id: true, name: true, email: true }
-          } : undefined,
+          user:
+            session.user.role === 'ADMIN'
+              ? { select: { id: true, name: true, email: true, createdAt: true } }
+              : undefined,
         },
         skip,
         take: limit,
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: { createdAt: 'desc' },
       }),
       prisma.order.count({ where }),
     ]);
 
+    // ✅ Ubah Decimal ke number
+    const sanitizedOrders = orders.map((order) => ({
+      ...order,
+      total: Number(order.total),
+      items: order.items.map((item) => ({
+        ...item,
+        price: Number(item.price),
+      })),
+    }));
+
     return NextResponse.json({
       success: true,
       data: {
-        orders,
+        orders: sanitizedOrders,
         pagination: {
           page,
           limit,
@@ -92,7 +99,7 @@ export async function POST() {
 
     const userId = session.user.id;
 
-    // Ambil keranjang pengguna beserta item dan detail produk
+    // Ambil keranjang user
     const cart = await prisma.cart.findUnique({
       where: { userId },
       include: {
@@ -111,30 +118,27 @@ export async function POST() {
       );
     }
 
-    // Gunakan transaksi untuk memastikan atomisitas: pembuatan pesanan, pembaruan stok, dan pembersihan keranjang.
     const createdOrder = await prisma.$transaction(async (tx) => {
-      // 1. Cek ketersediaan stok untuk semua item sebelum melanjutkan
+      // Cek stok
       for (const item of cart.items) {
         if (item.product.stock < item.quantity) {
-          // Dengan melempar error, transaksi akan otomatis dibatalkan (rollback).
           throw new Error(`Insufficient stock for ${item.product.name}`);
         }
       }
 
-      // 2. Hitung total harga
+      // Hitung total
       const total = cart.items.reduce((sum, item) => {
         return sum + Number(item.product.price) * item.quantity;
       }, 0);
 
-      // 3. Buat nomor pesanan yang lebih kuat
+      // Nomor pesanan unik
       const orderNumber = `ORD-${Date.now()}-${userId.substring(0, 4)}`;
 
-      // 4. Buat pesanan baru
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
           userId,
-          total,
+          total, // sudah number
           status: 'PENDING',
           items: {
             create: cart.items.map((item) => ({
@@ -146,7 +150,7 @@ export async function POST() {
         },
       });
 
-      // 5. Perbarui stok produk untuk setiap item dalam pesanan
+      // Update stok
       await Promise.all(
         cart.items.map((item) =>
           tx.product.update({
@@ -159,8 +163,8 @@ export async function POST() {
           })
         )
       );
-      
-      // 6. Bersihkan keranjang pengguna
+
+      // Hapus keranjang
       await tx.cartItem.deleteMany({
         where: { cartId: cart.id },
       });
@@ -168,30 +172,41 @@ export async function POST() {
       return newOrder;
     });
 
-    // Ambil data pesanan lengkap dengan semua relasi untuk dikembalikan ke klien
+    // Ambil data lengkap
     const completeOrder = await prisma.order.findUnique({
-        where: { id: createdOrder.id },
-        include: {
-            items: {
-                include: {
-                    product: true,
-                },
-            },
-            user: true,
+      where: { id: createdOrder.id },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
         },
+        user: true,
+      },
     });
+
+    // ✅ Ubah Decimal ke number
+    const sanitizedOrder = completeOrder
+      ? {
+          ...completeOrder,
+          total: Number(completeOrder.total),
+          items: completeOrder.items.map((item) => ({
+            ...item,
+            price: Number(item.price),
+          })),
+        }
+      : null;
 
     return NextResponse.json(
       {
         success: true,
-        data: completeOrder,
+        data: sanitizedOrder,
         message: 'Order created successfully',
       },
       { status: 201 }
     );
   } catch (error) {
     console.error('Error creating order:', error);
-    // Cek apakah error berasal dari Prisma atau error stok kustom kita
     const errorMessage =
       error instanceof Error ? error.message : 'Failed to create order';
     const statusCode = errorMessage.startsWith('Insufficient stock') ? 400 : 500;

@@ -1,8 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['images.unsplash.com'],
+    domains: [
+      'vcttklonfrrovhlfdvqr.supabase.co', // sudah ada
+      'images.unsplash.com'              // tambahkan ini
+    ],
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

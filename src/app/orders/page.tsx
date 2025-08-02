@@ -1,4 +1,3 @@
-// src/app/orders/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -51,7 +50,7 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.limit]); // Tambahkan dependensi
+  }, [pagination.limit]);
 
   // Ambil data pesanan
   useEffect(() => {
@@ -77,8 +76,9 @@ export default function OrdersPage() {
     }
   };
 
-  const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString('id-ID', { // Menggunakan format lokal Indonesia
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleDateString('id-ID', { // Menggunakan format lokal Indonesia
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -157,7 +157,7 @@ export default function OrdersPage() {
                     <div className="space-y-3">
                       {order.items.slice(0, 3).map((item: OrderItemWithProduct) => (
                         <div
-                          key={item.id} // Menggunakan item.id sebagai key unik
+                          key={item.id}
                           className="flex items-center justify-between py-2"
                         >
                           <div className="flex-1">
@@ -184,7 +184,15 @@ export default function OrdersPage() {
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Package className="w-4 h-4" />
                         <span>
-                          {order.status === 'DELIVERED' ? 'Terkirim' : order.status === 'SHIPPED' ? 'Dalam Perjalanan' : order.status === 'PROCESSING' ? 'Sedang Disiapkan' : order.status === 'PENDING' ? 'Pesanan Diterima' : 'Status Tidak Diketahui'}
+                          {order.status === 'DELIVERED' 
+                            ? 'Terkirim' 
+                            : order.status === 'SHIPPED' 
+                            ? 'Dalam Perjalanan' 
+                            : order.status === 'PROCESSING' 
+                            ? 'Sedang Disiapkan' 
+                            : order.status === 'PENDING' 
+                            ? 'Pesanan Diterima' 
+                            : 'Status Tidak Diketahui'}
                         </span>
                       </div>
 
@@ -225,7 +233,7 @@ export default function OrdersPage() {
                   Sebelumnya
                 </Button>
 
-                {[...Array(pagination.totalPages)].map((_, i) => {
+                {Array.from({ length: pagination.totalPages }, (_, i) => {
                   const page = i + 1;
                   return (
                     <Button

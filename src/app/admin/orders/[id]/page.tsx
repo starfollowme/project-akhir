@@ -1,3 +1,4 @@
+// src/app/admin/orders/[id]/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -8,22 +9,17 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  ArrowLeft,
-  Package,
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
+import { 
+  ArrowLeft, 
+  Package, 
   Calendar,
-  DollarSign,
   User,
   Mail,
-  Phone,
-  MapPin,
   Edit,
-  Save,
   Eye,
   Printer
 } from 'lucide-react'
-import { OrderWithItems } from '@/types'
 import { toast } from 'sonner'
 
 export default function AdminOrderDetailPage() {
@@ -32,7 +28,7 @@ export default function AdminOrderDetailPage() {
   const router = useRouter()
   const orderId = params.id as string
 
-  const [order, setOrder] = useState<(OrderWithItems & { user: any }) | null>(null)
+  const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
 
@@ -62,7 +58,7 @@ export default function AdminOrderDetailPage() {
         router.push('/admin/orders')
       }
     } catch (error) {
-      console.error('Gagal mengambil detail pesanan:', error)
+      console.error('Gagal memuat detail pesanan:', error)
       toast.error('Gagal memuat detail pesanan')
       router.push('/admin/orders')
     } finally {
@@ -70,7 +66,7 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  const updateOrderStatus = async (newStatus: string) => {
+  const updateOrderStatus = async (statusBaru: string) => {
     if (!order) return
 
     setUpdating(true)
@@ -80,7 +76,7 @@ export default function AdminOrderDetailPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ status: statusBaru })
       })
 
       const data = await response.json()
@@ -116,9 +112,10 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  // PERBAIKAN: Mengizinkan input berupa string atau Date
-  const formatDate = (dateString: string | Date) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
+  const formatTanggal = (tanggalInput: string | Date | undefined) => {
+    if (!tanggalInput) return '-'
+    const tanggal = typeof tanggalInput === 'string' ? new Date(tanggalInput) : tanggalInput
+    return tanggal.toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -127,7 +124,7 @@ export default function AdminOrderDetailPage() {
     })
   }
 
-  const printOrder = () => {
+  const cetakPesanan = () => {
     window.print()
   }
 
@@ -147,31 +144,32 @@ export default function AdminOrderDetailPage() {
     return null
   }
 
-  const subtotal = order.items.reduce((sum, item) => {
+  const subtotal = order.items.reduce((sum: number, item: any) => {
     return sum + (Number(item.price) * item.quantity)
   }, 0)
 
   return (
     <div className="p-6">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Link href="/admin/orders">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Kembali ke Pesanan
+              Kembali ke Daftar Pesanan
             </Button>
           </Link>
           <div className="border-l h-6"></div>
           <div>
             <h1 className="text-2xl font-bold">Pesanan #{order.orderNumber}</h1>
             <p className="text-gray-600">
-              Dibuat pada {formatDate(order.createdAt)}
+              Dibuat pada {formatTanggal(order.createdAt)}
             </p>
           </div>
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={printOrder}>
+          <Button variant="outline" onClick={cetakPesanan}>
             <Printer className="w-4 h-4 mr-2" />
             Cetak
           </Button>
@@ -179,7 +177,9 @@ export default function AdminOrderDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Status Pesanan */}
           <Card>
             <CardHeader>
               <CardTitle>Manajemen Pesanan</CardTitle>
@@ -199,22 +199,23 @@ export default function AdminOrderDetailPage() {
                       </Badge>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PENDING">Tertunda</SelectItem>
+                      <SelectItem value="PENDING">Menunggu</SelectItem>
                       <SelectItem value="PROCESSING">Diproses</SelectItem>
                       <SelectItem value="SHIPPED">Dikirim</SelectItem>
-                      <SelectItem value="DELIVERED">Terkirim</SelectItem>
+                      <SelectItem value="DELIVERED">Selesai</SelectItem>
                       <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
+                
                 <div className="text-sm text-gray-600">
-                  Terakhir diperbarui: {formatDate(order.updatedAt)}
+                  Terakhir diperbarui: {formatTanggal(order.updatedAt)}
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Informasi Pelanggan */}
           <Card>
             <CardHeader>
               <CardTitle>Informasi Pelanggan</CardTitle>
@@ -226,30 +227,31 @@ export default function AdminOrderDetailPage() {
                     <User className="w-4 h-4 text-gray-400" />
                     <span className="font-medium">{order.user?.name || 'Tanpa Nama'}</span>
                   </div>
-
+                  
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-gray-400" />
                     <span>{order.user?.email}</span>
                   </div>
                 </div>
-
+                
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    <span>Pelanggan sejak: {formatDate(order.user?.createdAt)}</span>
+                    <span>Pelanggan sejak: {formatTanggal(order.user?.createdAt)}</span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Item Pesanan */}
           <Card>
             <CardHeader>
-              <CardTitle>Barang Pesanan ({order.items.length})</CardTitle>
+              <CardTitle>Daftar Produk ({order.items.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {order.items.map((item) => (
+                {order.items.map((item: any) => (
                   <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
                     <div className="relative w-16 h-16 flex-shrink-0">
                       {item.product.imageUrl ? (
@@ -265,24 +267,24 @@ export default function AdminOrderDetailPage() {
                         </div>
                       )}
                     </div>
-
+                    
                     <div className="flex-1 min-w-0">
-                      <Link
+                      <Link 
                         href={`/admin/products/${item.product.id}/edit`}
                         className="font-medium hover:text-primary transition-colors"
                       >
                         {item.product.name}
                       </Link>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>SKU: {item.product.id.slice(-8).toUpperCase()}</p>
-                        <p>Harga saat pembelian: ${Number(item.price).toFixed(2)}</p>
-                        <p>Kuantitas: {item.quantity}</p>
+                        <p>Kode: {item.product.id.slice(-8).toUpperCase()}</p>
+                        <p>Harga: ${Number(item.price).toLocaleString('en-US')}</p>
+                        <p>Qty: {item.quantity}</p>
                       </div>
                     </div>
-
+                    
                     <div className="text-right">
                       <p className="font-semibold">
-                        ${(Number(item.price) * item.quantity).toFixed(2)}
+                        ${ (Number(item.price) * item.quantity).toLocaleString('en-US') }
                       </p>
                       <Link href={`/admin/products/${item.product.id}/edit`}>
                         <Button variant="ghost" size="sm">
@@ -298,7 +300,9 @@ export default function AdminOrderDetailPage() {
           </Card>
         </div>
 
+        {/* Sidebar */}
         <div className="space-y-6">
+          {/* Ringkasan Pesanan */}
           <Card>
             <CardHeader>
               <CardTitle>Ringkasan Pesanan</CardTitle>
@@ -306,26 +310,27 @@ export default function AdminOrderDetailPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>${ subtotal.toLocaleString('en-US') }</span>
               </div>
-
+              
               <div className="flex justify-between">
-                <span>Pengiriman</span>
-                <span>${(Number(order.total) - subtotal > 0 ? Number(order.total) - subtotal : 0).toFixed(2)}</span>
+                <span>Ongkir</span>
+                <span>${ (Number(order.total) - subtotal > 0 ? Number(order.total) - subtotal : 0).toLocaleString('en-US') }</span>
               </div>
-
+              
               <hr />
-
+              
               <div className="flex justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span>${Number(order.total).toFixed(2)}</span>
+                <span>${ Number(order.total).toLocaleString('en-US') }</span>
               </div>
             </CardContent>
           </Card>
 
+          {/* Timeline Pesanan */}
           <Card>
             <CardHeader>
-              <CardTitle>Linimasa Pesanan</CardTitle>
+              <CardTitle>Timeline Pesanan</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -336,11 +341,11 @@ export default function AdminOrderDetailPage() {
                   <div>
                     <p className="font-medium">Pesanan Dibuat</p>
                     <p className="text-sm text-gray-600">
-                      {formatDate(order.createdAt)}
+                      {formatTanggal(order.createdAt)}
                     </p>
                   </div>
                 </div>
-
+                
                 {order.status !== 'PENDING' && order.status !== 'CANCELLED' && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mt-1">
@@ -349,7 +354,7 @@ export default function AdminOrderDetailPage() {
                     <div>
                       <p className="font-medium">Status Diperbarui</p>
                       <p className="text-sm text-gray-600">
-                        {formatDate(order.updatedAt)}
+                        {formatTanggal(order.updatedAt)}
                       </p>
                     </div>
                   </div>
@@ -358,28 +363,29 @@ export default function AdminOrderDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Aksi Cepat */}
           <Card>
             <CardHeader>
               <CardTitle>Aksi Cepat</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button
-                variant="outline"
+              <Button 
+                variant="outline" 
                 className="w-full"
                 onClick={() => router.push(`/admin/users/${order.user?.id}`)}
               >
                 <User className="w-4 h-4 mr-2" />
                 Lihat Pelanggan
               </Button>
-
+              
               <Button variant="outline" className="w-full">
                 <Mail className="w-4 h-4 mr-2" />
                 Kirim Email
               </Button>
-
-              <Button variant="outline" className="w-full" onClick={printOrder}>
+              
+              <Button variant="outline" className="w-full" onClick={cetakPesanan}>
                 <Printer className="w-4 h-4 mr-2" />
-                Cetak Faktur
+                Cetak Invoice
               </Button>
             </CardContent>
           </Card>
