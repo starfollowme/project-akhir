@@ -131,12 +131,6 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-
-              <div className="bg-blue-50 p-3 rounded-md text-sm">
-                <p className="font-medium text-blue-900 mb-1">Akun Demo:</p>
-                <p className="text-blue-700">Admin: admin@example.com / admin123</p>
-                <p className="text-blue-700">Pelanggan: user@example.com / user123</p>
-              </div>
             </CardContent>
 
             <CardFooter>
